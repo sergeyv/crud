@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal" 
+     metal:use-macro="theme.layout.macros['master']">
+
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <title>${context.title}</title>
+        <link rel="stylesheet" type="text/css"
+          href="${request.application_url}/static/default.css" />
+</head>
+
+<body>
+
+<metal:header fill-slot="header">
+<h1>${context.title}</h1>
+</metal:header>
+
+
+<metal:main fill-slot="main">
+
+<table>
+<tr tal:repeat="instance context.get_items()">
+<td><a href="${context.child_url(request, instance)}">${instance}</a></td>
+<td><a href="${context.child_url(request, instance, 'edit')}">Edit</a></td>
+<td><a href="${context.child_url(request, instance, 'delete')}">Delete</a></td>
+</tr>
+</table>
+
+<p tal:condition="context.subitems_source"><a href="${context.item_url(request,'add')}">[Add]</a></p>
+
+<a href="${context.parent_url(request)}">Up one level</a>.
+
+</metal:main>
+
+<metal:sidebar fill-slot="sidebar">
+<p><strong>Sub-sections:</strong></p>
+<dl>
+    <tal:loop repeat="section context.get_subsections()">
+        <dt><a href="${section.item_url(request)}">${section.title}</a></dt>
+        <ul>
+        <tal:loop repeat="item section.get_items()">
+           <li><a href="${item.item_url(request)}">${item.title}</a></li>
+        </tal:loop>
+        </ul>
+    </tal:loop>
+</dl>
+</metal:sidebar>
+
+</body>
+</html>
+

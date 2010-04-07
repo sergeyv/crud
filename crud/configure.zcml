@@ -1,0 +1,56 @@
+<configure xmlns="http://namespaces.repoze.org/bfg">
+
+<view
+    for=".models.ISection"
+    view=".views.index"
+    permission="crud.list"
+    
+/>
+
+<view
+    for=".models.ITraversable"
+    view=".views.add"
+    name="add"
+    permission="crud.add"
+/>
+
+<view
+    for=".models.IModel"
+    view=".views.save"
+    name="save"
+    permission="crud.edit"
+/>
+
+<view
+    for=".models.ITraversable"
+    view=".views.save_new"
+    name="save_new"
+    permission="crud.add"
+/>
+
+<view
+    for=".models.IModel"
+    view=".views.view"
+    permission="crud.view"
+/>
+
+<view
+    for=".models.IModel"
+    view=".views.edit"
+    name="edit"
+    permission="crud.edit"
+/>
+
+
+<view
+    for=".models.IModel"
+    view=".views.delete"
+    name="delete"
+    permission="crud.delete"
+/>
+
+<static
+    name="static"
+    path="views/templates/static"
+/>
+</configure>

@@ -1,0 +1,34 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:tal="http://xml.zope.org/namespaces/tal"
+    xmlns:metal="http://xml.zope.org/namespaces/metal" 
+    metal:use-macro="theme.layout.macros['master']">
+
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <title>Add object - Kelpie</title>
+        <link rel="stylesheet" type="text/css"
+          href="${request.application_url}/static/style.css" />
+</head>
+
+<body>
+<metal:header fill-slot="header">
+<h1>Add</h1>
+</metal:header>
+
+
+<metal:main fill-slot="main">
+    <form method="post" action="save_new">
+        <tal:from replace="structure form" />
+
+        <input type="submit" name="form.button.submit" value="Save" />
+        <input type="submit" name="form.button.cancel" value="Cancel" />
+    </form>
+
+</metal:main>
+
+</body>
+</html>
+

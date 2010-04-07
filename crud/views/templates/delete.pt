@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:tal="http://xml.zope.org/namespaces/tal"
+    xmlns:metal="http://xml.zope.org/namespaces/metal" 
+    metal:use-macro="theme.layout.macros['master']">
+
+<body>
+<metal:header fill-slot="header">
+<h1>Delete object</h1>
+</metal:header>
+
+<metal:main fill-slot="main">
+
+<p>Delete ${instance}?</p>
+<form method="post" action="delete">
+
+<input type="submit" name="form.button.confirm_delete" value="Delete" />
+<input type="submit" name="form.button.cancel" value="Cancel" />
+</form>
+</metal:main>
+
+</body>
+</html>
+

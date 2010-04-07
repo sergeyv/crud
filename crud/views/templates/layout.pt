@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal" 
+     metal:define-macro="master">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Kelpie</title>
+<meta name="keywords" content="python web application" />
+<meta name="description" content="repoze.bfg web application" />
+<link href="${request.application_url}/static/default.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<!-- start header -->
+<div id="logo">
+  <h2><strong><a href="${request.application_url}">C.R.U.D.</a></strong> &mdash; automatic admin for <code>repoze.bfg</code></h2>
+</div>
+<div class="visualClear">&nbsp;</div>
+
+<!-- end header -->
+<div id="wrapper">
+  <!-- start page -->
+  <div id="page">
+  
+    <!-- start sidebar -->
+    <div id="sidebar">
+     <metal:body define-slot="sidebar">...</metal:body>
+    </div>
+    <!-- end sidebar -->
+
+    <div id="breadcrumbs"
+         tal:define="breadcrumbs context.breadcrumbs(request)"
+         tal:condition="len(breadcrumbs) > 1">
+        You are here:
+        <tal:loop repeat="bc context.breadcrumbs(request)">
+            <a href="${bc.url}">${bc.title}</a><tal:sep condition="not repeat['bc'].end">&rarr;</tal:sep>
+        </tal:loop>
+    </div>
+
+    <div id="header">
+     <metal:header define-slot="header">...</metal:header>
+    </div>
+    
+    <div id="content">
+     <metal:body define-slot="main">...</metal:body>
+    </div>
+    <div class="visualClear">&nbsp;</div>
+  </div>
+</div>
+<!-- end page -->
+<!-- start footer -->
+<div id="footer">
+  <p id="login" tal:define="userid theme.logged_in_user_id">
+    <tal:logged-in condition="userid">You are logged in as <strong>${userid}</strong>. <a href="${request.application_url}/logout">Log out</a></tal:logged-in>
+    <tal:anon condition="not userid">You are not logged in. <a href="${request.application_url}/login">Log in</a></tal:anon>
+  </p>
+  <div class="visualClear"> </div>
+</div>
+<!-- end footer -->
+</body>
+</html>

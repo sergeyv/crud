@@ -11,6 +11,8 @@ from sqlalchemy import orm
 
 from crud.registry import get_proxy_for_model
 
+from crud.forms.fa import FormAlchemyFormFactory
+
 DBSession = None
 
 class ITraversable(Interface):
@@ -226,7 +228,13 @@ class ModelProxy(Traversable):
 
     views = ('add', 'edit', 'save', 'delete', 'save_new')
 
-    form_factory = None
+    # Set FA form factory as the default (as this is the only one
+    # functional factory at the moment anyway)
+
+    form_factory = FormAlchemyFormFactory()
+
+    #form_factory = None
+
 
     def __init__(self, name, parent, model):
         self.__name__ = name

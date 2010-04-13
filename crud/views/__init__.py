@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from repoze.bfg.chameleon_zpt import render_template_to_response as render
 from repoze.bfg import traversal
@@ -13,13 +14,13 @@ from crud.views.theme import Theme
 def index(context,request):
     # context is a Section object here
     theme = Theme(context, request)
-    
+
     return render('templates/index.pt',
                   context=context,
                   request = request,
                   theme = theme,
                  )
-                                       
+
 def view(context, request):
     #context is ModelProxy here
     theme = Theme(context, request)
@@ -58,9 +59,10 @@ def add(context, request):
     dbsession = DBSession()
     instance = context.create_subitem()
     proxy = context.wrap_child(name=None, model=instance)
-    #fs = FieldSet(instance, session=dbsession)
+
+    import pdb; pdb.set_trace();
     form = proxy.form_factory.add_form(context,dbsession)
-    
+
     return render('templates/add.pt',
                   instance = instance,
                   theme = theme,
@@ -95,18 +97,18 @@ def save_new(context, request):
     dbsession = DBSession()
     #fs = FieldSet(instance, session=dbsession)
     #fs.rebind(instance, data=request.params)
-    #if fs.validate(): 
+    #if fs.validate():
     #    fs.sync()
     success = proxy.form_factory.save(model=instance, data=request.params, session=dbsession)
     if success:
         dbsession.add(instance)
         return HTTPFound(location=success_url)
     return HTTPFound(location=failure_url)
-    
+
 def delete(context, request):
     success_url = context.parent_url(request)
     theme = Theme(context, request)
-        
+
     if 'form.button.cancel' in request.params:
         return HTTPFound(location=success_url)
     if 'form.button.confirm_delete' in request.params:

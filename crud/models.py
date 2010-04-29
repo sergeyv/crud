@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 from zope.interface import Interface
 from zope.interface import implements
+from zope.interface import providedBy
 
 from webob.exc import HTTPNotFound
 from repoze.bfg.url import model_url
 from repoze.bfg.traversal import find_interface
 from repoze.bfg.location import lineage
+
+from repoze.bfg.interfaces import IView
+from repoze.bfg.interfaces import IRequest
+from repoze.bfg.threadlocal import get_current_registry
 
 from sqlalchemy import orm
 
@@ -30,14 +35,21 @@ class ISection(ITraversable):
 ###
 
 def get_related_by_id(obj, id, property_name=None):
-    print "GET RELATED BY ID: obj=%s, id=%s, property_name=%s" % (obj,id, property_name)
-
-    import traceback
-    traceback.print_stack()
 
     relation = getattr(obj.__class__, property_name)
-    related_class = relation.property.argument()
-    print "related class is %s" % related_class
+    #related_class = relation.property.argument()
+
+    arg = relation.property.argument
+    ### TODO: This is not a proper test, it's just a coincidence
+    ### thet it's callable in one case and not callable in another
+    if callable(arg):
+        # the relationship is defined on our class
+        related_class = arg()
+    else:
+        # the relationship is defined on the other class,
+        # and we have a backref, so arg is a Mapper object
+        related_class = arg.class_
+
     q = DBSession.query(related_class)
     q = q.with_parent(obj, property_name)
     q = q.filter_by(id=int(id))
@@ -54,15 +66,10 @@ class Traversable(object):
     #__parent__ = None
     subsections = {}
     subitems_source = None
-    views = []
 
     show_in_breadcrumbs = True
 
     def item_url(self, request, view_method=None):
-        print "getting url for %s" % self
-        print "    parent is %s" % self.__parent__
-        print "    name is %s" % self.__name__
-        print "    url is %s" % model_url(self, request)
         if view_method:
             return model_url(self, request, view_method)
         else:
@@ -82,16 +89,21 @@ class Traversable(object):
                 arg = str(arg)
             str_args.append(arg)
 
-        print "self: %s, request:%s, args: %s, str_args: %s" % (self, request, args, str_args)
         return model_url(self, request, *str_args)
 
     def __getitem__(self, name):
 
-        print "GGG"
         # 1. check if it's our own view
-        ## TODO: Try to get a real view using queryMultiAdapter here
-        ## get rid of self.views
-        if name in self.views:
+        registry = get_current_registry()
+        adapters = registry.adapters
+        context_iface = providedBy(self)
+        request_iface = IRequest
+
+        view_callable = adapters.lookup(
+            (request_iface, context_iface),
+            IView, name=name, default=None)
+
+        if view_callable is not None:
             raise KeyError
 
         # 2. check if it's our subsection
@@ -104,17 +116,19 @@ class Traversable(object):
             parent_model_proxy = find_interface(self, IModel)
             model = get_related_by_id(parent_model_proxy.model, name, self.subitems_source)
         else:
+            if self.subitems_source is None:
+                raise KeyError
+
             model = DBSession.query(self.subitems_source)\
                 .filter(self.subitems_source.id==name).first()
         if model is None:
             raise KeyError
         #proxy_class = get_proxy_for_model(model.__class__)
-        #print "Proxy for %s is %s" % (model.__class__, proxy_class)
-        #return proxy_class(name=name, parent=self, model=model)
         return self.wrap_child(model=model, name=name)
 
     def get_subsections(self):
-        return [s.with_parent(self,n) for (n,s) in self.subsections.items()]
+        s = [s.with_parent(self,n) for (n,s) in self.subsections.items()]
+        return s
 
     def can_have_subitems(self):
         """
@@ -124,7 +138,7 @@ class Traversable(object):
         return self.subitems_source is not None
 
     def has_subsections(self):
-        return self.subsections and len(self.subsections.items())
+        return self.subsections and len(self.subsections.keys())
 
     def parent_model(self):
         model = find_interface(self, IModel)
@@ -134,14 +148,32 @@ class Traversable(object):
         section = find_interface(self, ISection)
         return section
 
+    def get_class_from_relation(self, relation):
+        """
+        Returns class given relation attribute
+        """
+        ### There are two options - either our class defines a relationship itself or
+        ### the relationship is defined in the other class and the attribute is
+        ### set by a backref
+
+        arg = relation.property.argument
+        ### TODO: This is not a proper test, it's just a coincidence
+        ### thet it's callable in one case and not callable in another
+        if callable(arg):
+            # the relationship is defined on our class
+            related_class = arg()
+        else:
+            # the relationship is defined on the other class,
+            # and we have a backref, so arg is a Mapper object
+            related_class = arg.class_
+        return related_class
+
+
     def get_subitems_class(self):
         if isinstance(self.subitems_source, str):
             parent_model = self.parent_model()
             relation = getattr(parent_model.model.__class__, self.subitems_source)
-            #import pdb
-            #pdb.set_trace()
-            related_class = relation.property.argument()
-            return related_class
+            return self.get_class_from_relation(relation)
         else:
             return self.subitems_source
 
@@ -154,7 +186,8 @@ class Traversable(object):
             parent_wrapper = self.parent_model()
             parent_instance = parent_wrapper.model
             relation_attr = getattr(parent_instance.__class__, self.subitems_source)
-            related_class = relation_attr.property.argument()
+            #related_class = relation_attr.property.argument()
+            related_class = self.get_class_from_relation(relation_attr)
             child_instance = related_class()
             #assert False
             ### This works incorrectly for self-referential stuff
@@ -178,7 +211,6 @@ class Traversable(object):
             related_class = self.get_subitems_class()
             parent_model_proxy = find_interface(self, IModel)
             parent_class = parent_model_proxy.model
-            print "related class is %s" % related_class
             q = DBSession.query(related_class)
             q = q.with_parent(parent_class, self.subitems_source)
         else:
@@ -226,8 +258,6 @@ class ModelProxy(Traversable):
 
     pretty_name = 'Model'
 
-    views = ('add', 'edit', 'save', 'delete', 'save_new')
-
     # Set FA form factory as the default (as this is the only one
     # functional factory at the moment anyway)
 
@@ -236,10 +266,17 @@ class ModelProxy(Traversable):
     #form_factory = None
 
 
-    def __init__(self, name, parent, model):
+    def __init__(self, name, parent, model, subitems_source=None, subsections = None):
         self.__name__ = name
         self.__parent__ = parent
         self.model = model
+
+        if subitems_source is not None:
+            self.subitems_source = subitems_source
+
+        if subsections is not None:
+            self.subsections = subsections
+
 
     def __repr__(self):
         return self.model.__repr__()
@@ -254,14 +291,16 @@ class ModelProxy(Traversable):
 class Section(Traversable):
     implements(ISection)
 
-    views = ('add','save_new','delete')
-
-    def __init__(self, title, subitems_source=None, subsections = {}):
+    def __init__(self, title, subitems_source=None, subsections = None):
         self.__name__ = None
         self.__parent__ = None
         self.title = title
         self.subitems_source = subitems_source
-        self.subsections = subsections
+        #See http://code.activestate.com/recipes/502206-re-evaluatable-default-argument-expressions/
+        # - do not pass lists as a default argument
+        if subsections is not None:
+            self.subsections = subsections
+
 
     def __repr__(self):
         return "Section %s (%s)" % (self.title, self.subitems_source)
@@ -274,6 +313,7 @@ class Section(Traversable):
         #if self.__parent__ == parent:
         #    self.__name__ = name
         #    return self
+
         section = self.__class__(title=self.title,
             subitems_source=self.subitems_source,
             subsections = self.subsections )
@@ -291,7 +331,6 @@ class Section(Traversable):
 crud_root = None
 
 def get_root(environ=None):
-    print "CRUD_ROOT is %s" % crud_root
     return crud_root
 
 

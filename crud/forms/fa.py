@@ -24,7 +24,7 @@ class FormAlchemyFormFactory(object):
             if k not in exclude:
                 include.append(field.readonly())
             else:
-                print "Excluding %s" % k
+                pass
 
         fs.configure(include=include)
         return fs.render()

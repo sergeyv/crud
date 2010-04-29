@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 model_registry = dict()
 
@@ -13,6 +14,8 @@ def get_registered_types():
     return model_registry.keys()
 
 def get_proxy_for_model(model_class):
-    print "class is %s" % model_class
-    print "registry is %s" % (model_registry,)
-    return model_registry[model_class]
+    try:
+        return model_registry[model_class]
+    except KeyError:
+        # A more meaningful error message
+        raise KeyError("%s has not been registered with crud" % model_class)

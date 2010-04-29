@@ -55,7 +55,6 @@ class ModelURLTests(unittest.TestCase):
         about = about_section.with_parent(root, 'about')
         one = about.subsections['one'].with_parent(about,'one')
         result = self._callFUT(about_section, request)
-        print "GOT RESULT: %s" % result
         self.assertEqual(result, 'http://example.com/')
 
         

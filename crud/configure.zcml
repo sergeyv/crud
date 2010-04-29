@@ -4,7 +4,7 @@
     for=".models.ISection"
     view=".views.index"
     permission="crud.list"
-    
+
 />
 
 <view
@@ -50,7 +50,7 @@
 />
 
 <static
-    name="static"
+    name="crud_static"
     path="views/templates/static"
 />
 </configure>

@@ -60,7 +60,6 @@ def add(context, request):
     instance = context.create_subitem()
     proxy = context.wrap_child(name=None, model=instance)
 
-    import pdb; pdb.set_trace();
     form = proxy.form_factory.add_form(context,dbsession)
 
     return render('templates/add.pt',

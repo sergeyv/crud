@@ -4,17 +4,20 @@
      xmlns:metal="http://xml.zope.org/namespaces/metal"
      metal:define-macro="master">
 <head>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<title>Kelpie</title>
-<meta name="keywords" content="python web application" />
-<meta name="description" content="repoze.bfg web application" />
-<link href="${request.application_url}/crud_static/default.css" rel="stylesheet" type="text/css" />
+    <metal:htmlhead define-slot="htmlhead">
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>Kelpie</title>
+	<meta name="keywords" content="python web application" />
+	<meta name="description" content="repoze.bfg web application" />
+	<link href="${request.application_url}/crud_static/default.css" rel="stylesheet" type="text/css" />
+    </metal:htmlhead>
 </head>
 <body>
 <!-- start header -->
 <div id="logo">
   <h2><strong><a href="${request.application_url}">C.R.U.D.</a></strong> &mdash; automatic admin for <code>repoze.bfg</code></h2>
 </div>
+
 <div class="visualClear">&nbsp;</div>
 
 <!-- end header -->
@@ -37,14 +40,17 @@
         </tal:loop>
     </div>
 
-    <div id="header">
-     <metal:header define-slot="header">...</metal:header>
-    </div>
+    <metal:header-and-content define-slot="header-and-content">
+        <div id="header">
+        <metal:header define-slot="header">...</metal:header>
+        </div>
 
-    <div id="content">
-     <metal:body define-slot="main">...</metal:body>
-    </div>
-    <div class="visualClear">&nbsp;</div>
+        <div id="content">
+        <metal:body define-slot="main">...</metal:body>
+        </div>
+        <div class="visualClear">&nbsp;</div>
+    </metal:header-and-content>
+
   </div>
 </div>
 <!-- end page -->

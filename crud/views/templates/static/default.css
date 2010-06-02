@@ -127,7 +127,7 @@ input, textarea, select {
     padding:0.5em 1em;
 }
 
-#header {
+.header {
     background-color: #D0FFC0;
     margin-right: 23em;
     margin-bottom:1em;
@@ -135,11 +135,11 @@ input, textarea, select {
     padding:0.5em 1em;
 }
 
-#header h1 {
+.header h1 {
     margin:0;
 }
 
-#content {
+.content {
     background-color: #FFFFFF;
     margin-right: 23em;
     border:1px solid #D0D0D0;

@@ -106,10 +106,16 @@ class Traversable(object):
         if view_callable is not None:
             raise KeyError
 
+
+        ### I've got no idea what makes it a tuple but it happens
+        ### This is a quick and dirty fix
+        if type(self.subsections) == tuple:
+            self.subsections = self.subsections[0]
+
         # 2. check if it's our subsection
         s = self.subsections.get(name, None)
         if s is not None:
-            return s.with_parent(self, name)
+            return self.create_child_subsection(s, name)
 
         # 3. look up subitems
         if isinstance(self.subitems_source, str):
@@ -127,8 +133,18 @@ class Traversable(object):
         return self.wrap_child(model=model, name=name)
 
     def get_subsections(self):
-        s = [s.with_parent(self,n) for (n,s) in self.subsections.items()]
-        return s
+
+        ### I've got no idea what makes it a tuple but it happens
+        ### This is a quick and dirty fix
+        if type(self.subsections) == tuple:
+            self.subsections = self.subsections[0]
+
+        for s in self.subsections:
+            print s
+        subs = []
+        for (n,s) in self.subsections.items():
+            subs.append(self.create_child_subsection(s,n))
+        return subs
 
     def can_have_subitems(self):
         """
@@ -158,7 +174,7 @@ class Traversable(object):
 
         arg = relation.property.argument
         ### TODO: This is not a proper test, it's just a coincidence
-        ### thet it's callable in one case and not callable in another
+        ### that it's callable in one case and not callable in another
         if callable(arg):
             # the relationship is defined on our class
             related_class = arg()
@@ -204,26 +220,55 @@ class Traversable(object):
             # TODO: figure out how to get FK name in this case
             return self.subitems_source()
 
-    def get_items(self):
-        if self.subitems_source is None:
-            return []
+
+    def get_items_query(self, order_by=None):
+        """
+        Returns the query which can be further modified
+        """
+        related_class = self.get_subitems_class()
         if isinstance(self.subitems_source, str):
-            related_class = self.get_subitems_class()
             parent_model_proxy = find_interface(self, IModel)
             parent_class = parent_model_proxy.model
             q = DBSession.query(related_class)
             q = q.with_parent(parent_class, self.subitems_source)
         else:
-            q = DBSession.query(self.subitems_source)
-        result = q.all()
-        # wrap them in the location-aware proxy
+            q = DBSession.query(related_class)
 
-        if len(result):
-            sample = result[0]
-            #proxy_class = get_proxy_for_model(model.__class__)
-            #result = [proxy_class(name=str(obj.id), parent=self, model=obj) for obj in result]
+        if order_by is not None:
+            order_by_field = getattr(related_class, order_by)
+            q = q.order_by(order_by_field)
+
+        return q
+
+
+    def get_items(self, order_by=None, wrap=True):
+        """
+        Returns all subitems of the Traversable
+        @param order_by - the name of the field to order the result by
+        @param wrap - whether to wrap the result in ModelProxies or return raw SA objects
+        TODO: Add descending sorting and possibly other filtering
+        """
+
+        if self.subitems_source is None:
+            return []
+
+        q = self.get_items_query(order_by)
+
+        result = q.all()
+
+        ### wrap them in the location-aware proxy
+        if wrap and len(result):
             result = [self.wrap_child(model=model, name=str(model.id)) for model in result]
 
+        return result
+
+    def get_item(self, id):
+        """
+        Returns a single item from the collection by its ID
+        """
+        classobj = self.get_subitems_class()
+        q = self.get_items_query()
+        result = q.filter(classobj.id == id).one()
         return result
 
     def breadcrumbs(self, request):
@@ -283,19 +328,23 @@ class ModelProxy(Traversable):
 
     @property
     def title(self):
-        return getattr(self.model, 'title',
-                    getattr(self.model, 'name',
-                    "%s %s" % (self.pretty_name, self.model.id)))
+        return repr(self.model)
+        #return getattr(self.model, 'title',
+        #            getattr(self.model, 'name',
+        #            "%s %s" % (self.pretty_name, self.model.id)))
 
 
 class Section(Traversable):
     implements(ISection)
 
-    def __init__(self, title, subitems_source=None, subsections = None):
+    def __init__(self, title=None, subitems_source=None, subsections = None):
         self.__name__ = None
         self.__parent__ = None
-        self.title = title
-        self.subitems_source = subitems_source
+        if title is not None:
+            self.title = title
+
+        if subitems_source is not None:
+            self.subitems_source = subitems_source
         #See http://code.activestate.com/recipes/502206-re-evaluatable-default-argument-expressions/
         # - do not pass lists as a default argument
         if subsections is not None:
@@ -305,28 +354,53 @@ class Section(Traversable):
     def __repr__(self):
         return "Section %s (%s)" % (self.title, self.subitems_source)
 
-    def with_parent(self, parent, name):
+
+    #def with_parent(self, parent, name):
+        #"""
+        #returns a copy of the section
+        #inserted in the 'traversal context'
+        #"""
+        ##if self.__parent__ == parent:
+        ##    self.__name__ = name
+        ##    return self
+
+        #section = self.__class__(title=self.title,
+            #subitems_source=self.subitems_source,
+            #subsections = self.subsections )
+        #section.__name__ = name
+        #section.__parent__ = parent
+
+        #### TODO: This approach is not very nice because we have to copy
+        #### all settings to the new object (which is getting discarded anyway)
+        #### use some sort of proxy objects which refer to the original
+        #### (and immutable) section?
+        #section.show_in_breadcrumbs = self.show_in_breadcrumbs
+        #return section
+
+
+    def create_child_subsection(self, origin, name):
         """
         returns a copy of the section
         inserted in the 'traversal context'
         """
-        #if self.__parent__ == parent:
-        #    self.__name__ = name
-        #    return self
 
-        section = self.__class__(title=self.title,
-            subitems_source=self.subitems_source,
-            subsections = self.subsections )
+        if type(origin) == type:
+            section = origin()
+        else:
+            section = origin.__class__(title=origin.title,
+                subitems_source=origin.subitems_source,
+                subsections = origin.subsections )
+
+            ### TODO: This approach is not very nice because we have to copy
+            ### all settings to the new object (which is getting discarded anyway)
+            ### use some sort of proxy objects which refer to the original
+            ### (and immutable) section?
+            section.show_in_breadcrumbs = origin.show_in_breadcrumbs
+
         section.__name__ = name
-        section.__parent__ = parent
+        section.__parent__ = self
 
-        ### TODO: This approach is not very nice because we have to copy
-        ### all settings to the new object (which is getting discarded anyway)
-        ### use some sort of proxy objects which refer to the original
-        ### (and immutable) section?
-        section.show_in_breadcrumbs = self.show_in_breadcrumbs
         return section
-
 
 crud_root = None
 

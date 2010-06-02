@@ -41,11 +41,11 @@
     </div>
 
     <metal:header-and-content define-slot="header-and-content">
-        <div id="header">
+        <div class="header">
         <metal:header define-slot="header">...</metal:header>
         </div>
 
-        <div id="content">
+        <div class="content">
         <metal:body define-slot="main">...</metal:body>
         </div>
         <div class="visualClear">&nbsp;</div>

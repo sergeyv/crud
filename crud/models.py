@@ -221,6 +221,30 @@ class Traversable(object):
             return self.subitems_source()
 
 
+    def create_child_subsection(self, origin, name):
+        """
+        returns a copy of the section
+        inserted in the 'traversal context'
+        """
+
+        if type(origin) == type:
+            section = origin()
+        else:
+            section = origin.__class__(title=origin.title,
+                subitems_source=origin.subitems_source,
+                subsections = origin.subsections )
+
+            ### TODO: This approach is not very nice because we have to copy
+            ### all settings to the new object (which is getting discarded anyway)
+            ### use some sort of proxy objects which refer to the original
+            ### (and immutable) section?
+            section.show_in_breadcrumbs = origin.show_in_breadcrumbs
+
+        section.__name__ = name
+        section.__parent__ = self
+
+        return section
+
     def get_items_query(self, order_by=None):
         """
         Returns the query which can be further modified
@@ -377,30 +401,6 @@ class Section(Traversable):
         #section.show_in_breadcrumbs = self.show_in_breadcrumbs
         #return section
 
-
-    def create_child_subsection(self, origin, name):
-        """
-        returns a copy of the section
-        inserted in the 'traversal context'
-        """
-
-        if type(origin) == type:
-            section = origin()
-        else:
-            section = origin.__class__(title=origin.title,
-                subitems_source=origin.subitems_source,
-                subsections = origin.subsections )
-
-            ### TODO: This approach is not very nice because we have to copy
-            ### all settings to the new object (which is getting discarded anyway)
-            ### use some sort of proxy objects which refer to the original
-            ### (and immutable) section?
-            section.show_in_breadcrumbs = origin.show_in_breadcrumbs
-
-        section.__name__ = name
-        section.__parent__ = self
-
-        return section
 
 crud_root = None
 

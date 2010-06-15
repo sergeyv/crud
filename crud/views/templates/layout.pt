@@ -26,9 +26,11 @@
   <div id="page">
 
     <!-- start sidebar -->
+    <metal:slot define-slot="no-sidebar">
     <div id="sidebar">
      <metal:body define-slot="sidebar">...</metal:body>
     </div>
+    </metal:slot>
     <!-- end sidebar -->
 
     <div id="breadcrumbs"

@@ -20,6 +20,6 @@ class Theme(object):
     @property
     def logged_in_user_id(self):
         """
-        Returns the ID od the current user
+        Returns the ID of the current user
         """
         return authenticated_userid(self.request)

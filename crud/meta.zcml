@@ -1,0 +1,22 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:meta="http://namespaces.zope.org/meta">
+
+    <meta:directives namespace="http://namespaces.mooball.com/crud">
+
+    <meta:directive
+        name="register"
+        schema=".zcml.IRegisterDirective"
+        handler=".zcml.register"
+        />
+
+    <meta:directive
+        name="section"
+        schema=".zcml.ISectionDirective"
+        handler=".zcml.section"
+        />
+
+
+     </meta:directives>
+
+
+</configure>

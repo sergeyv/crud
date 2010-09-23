@@ -361,6 +361,7 @@ class ModelProxy(Traversable):
 class Section(Traversable):
     implements(ISection)
 
+
     def __init__(self, title=None, subitems_source=None, subsections = None):
         self.__name__ = None
         self.__parent__ = None
@@ -373,6 +374,15 @@ class Section(Traversable):
         # - do not pass lists as a default argument
         if subsections is not None:
             self.subsections = subsections
+
+
+    def _get_title(self):
+        return getattr(self, '_title', self.__name__)
+
+    def _set_title(self, title):
+        self._title = title
+
+    title = property(_get_title, _set_title)
 
 
     def __repr__(self):

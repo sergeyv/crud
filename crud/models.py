@@ -193,10 +193,13 @@ class Traversable(object):
         else:
             return self.subitems_source
 
-    def create_subitem(self):
+    def create_subitem(self, params=None):
         """
         Creates a new subitem and sets its FK to its
         parent model's PK (if any)
+
+        Also sets the new object properties to the initial values passed
+        in params (which is a dict)
         """
         if isinstance(self.subitems_source, str):
             parent_wrapper = self.parent_model()
@@ -207,19 +210,30 @@ class Traversable(object):
             child_instance = related_class()
             #assert False
             ### This works incorrectly for self-referential stuff
-            for pair in relation_attr.property.local_remote_pairs:
-                parent_attr_name = pair[0].key
-                value = getattr(parent_instance, parent_attr_name)
-                child_attr_name = pair[1].key
-                setattr(child_instance, child_attr_name, value)
+            #for pair in relation_attr.property.local_remote_pairs:
+            #    parent_attr_name = pair[0].key
+            #    value = getattr(parent_instance, parent_attr_name)
+            #    child_attr_name = pair[1].key
+            #    setattr(child_instance, child_attr_name, value)
 
-            return child_instance
+            # This does the same as the code above only it lets
+            # SA to figure out which fields to set
+            collection = getattr(parent_model, self.subitems_source)
+            collection.append(child_instance)
+            obj = child_instance
         else:
             # subitems_source is a class -
             # - just create an instance and return it
             # TODO: figure out how to get FK name in this case
-            return self.subitems_source()
+            obj =  self.subitems_source()
 
+        # Set the initial values
+        if params is not None:
+            for (k,v) in params.items():
+                if v: # do not set empty fields
+                    setattr(obj, k, v)
+
+        return obj
 
     def create_child_subsection(self, origin, name):
         """
@@ -347,12 +361,12 @@ class ModelProxy(Traversable):
             self.subsections = subsections
 
 
-    def __repr__(self):
-        return self.model.__repr__()
+    def __unicode__(self):
+        return unicode(self.model)
 
     @property
     def title(self):
-        return repr(self.model)
+        return str(self.model)
         #return getattr(self.model, 'title',
         #            getattr(self.model, 'name',
         #            "%s %s" % (self.pretty_name, self.model.id)))

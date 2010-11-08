@@ -218,7 +218,7 @@ class Traversable(object):
 
             # This does the same as the code above only it lets
             # SA to figure out which fields to set
-            collection = getattr(parent_model, self.subitems_source)
+            collection = getattr(parent_instance, self.subitems_source)
             collection.append(child_instance)
             obj = child_instance
         else:

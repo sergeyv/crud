@@ -193,7 +193,7 @@ class Traversable(object):
         else:
             return self.subitems_source
 
-    def create_subitem(self, params=None):
+    def create_subitem(self, params=None, request=None):
         """
         Creates a new subitem and sets its FK to its
         parent model's PK (if any)

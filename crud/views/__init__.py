@@ -111,8 +111,10 @@ def delete(context, request):
     if 'form.button.cancel' in request.params:
         return HTTPFound(location=success_url)
     if 'form.button.confirm_delete' in request.params:
-        dbsession = DBSession()
-        dbsession.delete(context.model)
+        #dbsession = DBSession()
+        #dbsession.delete(context.model)
+        context.delete_item()
+
         return HTTPFound(location=success_url)
     return render('templates/delete.pt',
                   instance = context.model,

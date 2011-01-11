@@ -129,7 +129,6 @@ class Traversable(object):
                 .filter(self.subitems_source.id==name).first()
         if model is None:
             raise KeyError
-        #proxy_class = get_proxy_for_model(model.__class__)
         return self.wrap_child(model=model, name=name)
 
     def get_subsections(self):
@@ -234,6 +233,16 @@ class Traversable(object):
                     setattr(obj, k, v)
 
         return obj
+
+    def delete_subitems(self, ids):
+        """
+        Deletes subitems which ids match the list of ids
+        """
+        cls = self.get_subitems_class()
+        qry = self.get_items_query()
+        qry.filter(cls.id.in_(ids)).delete()
+
+
 
     def create_child_subsection(self, origin, name):
         """
@@ -371,6 +380,9 @@ class ModelProxy(Traversable):
         #            getattr(self.model, 'name',
         #            "%s %s" % (self.pretty_name, self.model.id)))
 
+
+    def delete_item(self):
+        DBSession.delete(self.model)
 
 class Section(Traversable):
     implements(ISection)

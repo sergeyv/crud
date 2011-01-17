@@ -25,3 +25,20 @@ def get_proxy_for_model(model_class):
         return ModelProxy
         # A more meaningful error message
         #raise KeyError("%s has not been registered with crud" % model_class)
+
+
+class proxy_for(object):
+    """
+    A decorator which syntax-sugares registering:
+    
+    @crud.proxy_for(models.Client)
+    class ClientProxy(crud.ModelProxy):
+        ...
+        
+    """
+    def __init__(self, model):
+        self.model = model
+
+    def __call__(self, cls):
+        register(self.model, cls)
+        return cls

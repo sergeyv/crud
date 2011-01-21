@@ -113,7 +113,7 @@ def delete(context, request):
     if 'form.button.confirm_delete' in request.params:
         #dbsession = DBSession()
         #dbsession.delete(context.model)
-        context.delete_item()
+        context.delete_item(request)
 
         return HTTPFound(location=success_url)
     return render('templates/delete.pt',

@@ -66,6 +66,7 @@ class Traversable(object):
     #__parent__ = None
     subsections = {}
     subitems_source = None
+    filter_condition = None
 
     show_in_breadcrumbs = True
 
@@ -268,7 +269,7 @@ class Traversable(object):
 
         return section
 
-    def get_items_query(self, order_by=None):
+    def get_items_query(self, order_by=None, filter_condition=None):
         """
         Returns the query which can be further modified
         """
@@ -281,6 +282,17 @@ class Traversable(object):
         else:
             q = DBSession.query(related_class)
 
+
+        # A descendant class can define a class variable 'filter_condition'
+        # which defines an additional filter condition
+        if self.filter_condition is not None:
+            q = q.filter(self.filter_condition)
+
+        # We can also pass a condition to the method on a per-call basis
+        if filter_condition is not None:
+            q = q.filter(filter_condition)
+
+
         if order_by is not None:
             order_by_field = getattr(related_class, order_by)
             q = q.order_by(order_by_field)
@@ -288,7 +300,7 @@ class Traversable(object):
         return q
 
 
-    def get_items(self, order_by=None, wrap=True):
+    def get_items(self, order_by=None, wrap=True, filter_condition=None):
         """
         Returns all subitems of the Traversable
         @param order_by - the name of the field to order the result by
@@ -299,7 +311,7 @@ class Traversable(object):
         if self.subitems_source is None:
             return []
 
-        q = self.get_items_query(order_by)
+        q = self.get_items_query(order_by, filter_condition=filter_condition)
 
         result = q.all()
 
@@ -381,7 +393,7 @@ class ModelProxy(Traversable):
         #            "%s %s" % (self.pretty_name, self.model.id)))
 
 
-    def delete_item(self):
+    def delete_item(self, request=None):
         DBSession.delete(self.model)
 
 class Section(Traversable):

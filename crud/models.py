@@ -126,6 +126,13 @@ class Traversable(object):
             if self.subitems_source is None:
                 raise KeyError
 
+            # Some RDBMSes are not happy when we pass a string where
+            # it expects a number. And id should be a number.
+            try:
+                int_name = int(name)
+            except ValueError:
+                raise KeyError("ID should be an int")
+
             model = DBSession.query(self.subitems_source)\
                 .filter(self.subitems_source.id==name).first()
         if model is None:

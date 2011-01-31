@@ -1,6 +1,6 @@
 import unittest
 
-from repoze.bfg.testing import cleanUp
+from pyramid.testing import cleanUp
 
 from crud import Section
 
@@ -12,11 +12,11 @@ class ModelURLTests(unittest.TestCase):
         cleanUp()
         
     def _callFUT(self, model, request, *elements, **kw):
-        from repoze.bfg.url import model_url
+        from pyramid.url import model_url
         return model_url(model, request, *elements, **kw)
 
     def _registerContextURL(self):
-        from repoze.bfg.interfaces import IContextURL
+        from pyramid.interfaces import IContextURL
         from zope.interface import Interface
         from zope.component import getSiteManager
         class DummyContextURL(object):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from repoze.bfg.chameleon_zpt import render_template_to_response as render
-from repoze.bfg import traversal
+from pyramid.chameleon_zpt import render_template_to_response as render
+from pyramid import traversal
 
 from webob.exc import HTTPFound
 from formalchemy import FieldSet

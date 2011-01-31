@@ -1,6 +1,6 @@
-from repoze.bfg.security import authenticated_userid
+from pyramid.security import authenticated_userid
 
-from repoze.bfg.chameleon_zpt import get_template
+from pyramid.chameleon_zpt import get_template
 
 # test test
 

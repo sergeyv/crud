@@ -4,13 +4,13 @@ from zope.interface import implements
 from zope.interface import providedBy
 
 from webob.exc import HTTPNotFound
-from repoze.bfg.url import model_url
-from repoze.bfg.traversal import find_interface
-from repoze.bfg.location import lineage
+from pyramid.url import resource_url
+from pyramid.traversal import find_interface
+from pyramid.location import lineage
 
-from repoze.bfg.interfaces import IView
-from repoze.bfg.interfaces import IRequest
-from repoze.bfg.threadlocal import get_current_registry
+from pyramid.interfaces import IView
+from pyramid.interfaces import IRequest
+from pyramid.threadlocal import get_current_registry
 
 from sqlalchemy import orm
 
@@ -72,12 +72,12 @@ class Traversable(object):
 
     def item_url(self, request, view_method=None):
         if view_method:
-            return model_url(self, request, view_method)
+            return resource_url(self, request, view_method)
         else:
-            return model_url(self, request)
+            return resource_url(self, request)
 
     def parent_url(self, request):
-        return model_url(self.__parent__, request)
+        return resource_url(self.__parent__, request)
 
     def child_url(self, request, *args):
         # args contain ModelProxies, not real objects
@@ -90,7 +90,7 @@ class Traversable(object):
                 arg = str(arg)
             str_args.append(arg)
 
-        return model_url(self, request, *str_args)
+        return resource_url(self, request, *str_args)
 
     def __getitem__(self, name):
 

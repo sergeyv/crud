@@ -215,18 +215,21 @@ class Traversable(object):
             #related_class = relation_attr.property.argument()
             related_class = self.get_class_from_relation(relation_attr)
             child_instance = related_class()
-            #assert False
-            ### This works incorrectly for self-referential stuff
-            #for pair in relation_attr.property.local_remote_pairs:
-            #    parent_attr_name = pair[0].key
-            #    value = getattr(parent_instance, parent_attr_name)
-            #    child_attr_name = pair[1].key
-            #    setattr(child_instance, child_attr_name, value)
 
-            # This does the same as the code above only it lets
-            # SA to figure out which fields to set
-            collection = getattr(parent_instance, self.subitems_source)
-            collection.append(child_instance)
+            # Check if the property is a vector (one-to-many) or a scalar (one-to-one) built using uselist=False in the relation
+            mapper = orm.class_mapper(parent_instance.__class__)
+            prop = mapper.get_property(self.subitems_source)
+
+
+            if prop.uselist:
+                # it's a list, so we append our item to the list
+                collection = getattr(parent_instance, self.subitems_source)
+                collection.append(child_instance)
+            else:
+                # this is a one-to-one relation, so we assign the object to the
+                # attribute
+                setattr(parent_instance, self.subitems_source, child_instance)
+                
             obj = child_instance
         else:
             # subitems_source is a class -
@@ -246,9 +249,30 @@ class Traversable(object):
         """
         Deletes subitems which ids match the list of ids
         """
-        cls = self.get_subitems_class()
-        qry = self.get_items_query()
-        qry.filter(cls.id.in_(ids)).delete()
+        if ids is not None:
+            cls = self.get_subitems_class()
+            qry = self.get_items_query()
+            qry.filter(cls.id.in_(ids)).delete()
+        else:
+            parent_wrapper = self.parent_model()
+            parent_instance = parent_wrapper.model
+            #relation_attr = getattr(parent_instance.__class__, self.subitems_source)
+            #related_class = self.get_class_from_relation(relation_attr)
+
+            # Check if the property is a vector (one-to-many) or a scalar (one-to-one) built using uselist=False in the relation
+            mapper = orm.class_mapper(parent_instance.__class__)
+            prop = mapper.get_property(self.subitems_source)
+
+            if prop.uselist:
+                # it's a list, we can't delete a subitem if no ids were passed
+                raise KeyError("%s.%s is not a scalar attribute, need to provide a list of ids to delete subitems" % (parent_instance.__class__.__name__, self.subitems_source))
+            else:
+                # this is a one-to-one relation (or probably the 'one' end of one-to-meny relation?) so we need to delete the item itself
+                #qry = self.get_items_query()
+                #print "QUERY IS %s" % qry
+                #qry.delete()
+                item = getattr(parent_instance, self.subitems_source)
+                DBSession.delete(item)
 
 
 

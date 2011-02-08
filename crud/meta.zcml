@@ -11,7 +11,7 @@
 
     <meta:directive
         name="section"
-        schema=".zcml.ISectionDirective"
+        schema=".zcml.ICollectionDirective"
         handler=".zcml.section"
         />
 

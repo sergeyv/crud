@@ -2,7 +2,7 @@ import unittest
 
 from pyramid.testing import cleanUp
 
-from crud import Section
+from crud import Collection
 
 class ModelURLTests(unittest.TestCase):
     def setUp(self):
@@ -32,19 +32,19 @@ class ModelURLTests(unittest.TestCase):
         #self._registerContextURL()
         
         
-        about_section = Section(
+        about_section = Collection(
             "About", 
             subsections = {
-           'one' : Section('Page One!'),
-           'two' : Section('A folder!',
+           'one' : Collection('Page One!'),
+           'two' : Collection('A folder!',
                 subsections = {
-                    'uno' : Section("Uno!"),
-                    'duo' : Section("Duo!"),
+                    'uno' : Collection("Uno!"),
+                    'duo' : Collection("Duo!"),
                 })
             }
         )
 
-        root = Section(
+        root = Collection(
             "Kelpie!",
             subsections = dict(
                 about = about_section 

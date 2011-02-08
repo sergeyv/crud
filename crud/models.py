@@ -26,7 +26,7 @@ class ITraversable(Interface):
 class IResource(ITraversable):
     """ """
 
-class ISection(ITraversable):
+class ICollection(ITraversable):
     """ """
 
 
@@ -168,7 +168,7 @@ class Traversable(object):
         return model
 
     def parent_section(self):
-        section = find_interface(self, ISection)
+        section = find_interface(self, ICollection)
         return section
 
     def get_class_from_relation(self, relation):
@@ -427,8 +427,8 @@ class Resource(Traversable):
     def delete_item(self, request=None):
         DBSession.delete(self.model)
 
-class Section(Traversable):
-    implements(ISection)
+class Collection(Traversable):
+    implements(ICollection)
 
 
     def __init__(self, title=None, subitems_source=None, subsections = None):
@@ -455,7 +455,7 @@ class Section(Traversable):
 
 
     def __repr__(self):
-        return "Section %s (%s)" % (self.title, self.subitems_source)
+        return "Collection %s (%s)" % (self.title, self.subitems_source)
 
 
 

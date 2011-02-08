@@ -37,7 +37,7 @@ def register(_context, model, resource):
     crud.register(model, resource)
 
 
-class ISectionDirective(Interface):
+class ICollectionDirective(Interface):
     """
     crud directive registers a CRUD section
     """
@@ -63,7 +63,7 @@ class ISectionDirective(Interface):
     model = GlobalObject(
         title=u"Crud object",
         description=u""" """,
-        required=False, # Someitmes we want Sections without any subitems
+        required=False, # Someitmes we want Collections without any subitems
         )
 
 def section(_context, slug, title, section, model=None):

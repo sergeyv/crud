@@ -8,12 +8,12 @@ from formalchemy import FieldSet
 from crud.models import DBSession
 
 
-from crud import IResource, ISection, Resource
+from crud import IResource, ICollection, Resource
 
 from crud.views.theme import Theme
 
 def index(context,request):
-    # context is a Section object here
+    # context is a Collection object here
     theme = Theme(context, request)
 
     return render('templates/index.pt',
@@ -55,7 +55,7 @@ def edit(context, request):
                  )
 
 def add(context, request):
-    # context is Section here
+    # context is Collection here
     theme = Theme(context, request)
     dbsession = DBSession()
     instance = context.create_subitem()

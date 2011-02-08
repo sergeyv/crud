@@ -3,7 +3,7 @@
   <include file="meta.zcml" />
 
 <view
-    for=".models.ISection"
+    for=".models.ICollection"
     view=".views.index"
     permission="crud.list"
 

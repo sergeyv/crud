@@ -67,6 +67,10 @@ class Traversable(object):
     subsections = {}
     subitems_source = None
     filter_condition = None
+    #: A subclass can define an order_by attribute which will be used to order subitems
+    #: The setting can be overridden per-request using the order_by parameter of get_items method
+    #: order_by is a string in format "name;-price;+num_orders" - where a minus results in descending sorting 
+    order_by = None
 
     show_in_breadcrumbs = True
 
@@ -287,7 +291,8 @@ class Traversable(object):
         else:
             section = origin.__class__(title=origin.title,
                 subitems_source=origin.subitems_source,
-                subsections = origin.subsections )
+                subsections = origin.subsections,
+                order_by = origin.order_by )
 
             ### TODO: This approach is not very nice because we have to copy
             ### all settings to the new object (which is getting discarded anyway)
@@ -323,12 +328,43 @@ class Traversable(object):
         if filter_condition is not None:
             q = q.filter(filter_condition)
 
+        # Ordering support: we can override order_by on a per-call basis
+        if order_by is None:
+            order_by = self.order_by
 
         if order_by is not None:
-            order_by_field = getattr(related_class, order_by)
-            q = q.order_by(order_by_field)
+            q = self._build_order_by_clause(q, related_class, order_by)
 
         return q
+
+
+    def _build_order_by_clause(self, query_obj, item_class, order_by_str):
+        """
+        Parses a string in format "name;-price;+num_orders" and builds an
+        order_by clause for a query. Returns the modified query
+        """
+
+        fields = []
+        for obs in order_by_str.split(';'):
+            obs = obs.strip()
+            if not obs:
+                continue;
+            need_desc = (obs[0] == '-')
+            need_asc  = (obs[0] == '+')
+
+            field_name = obs.lstrip('+-')
+            field = getattr(item_class, field_name, None)
+            if field is not None:
+                if need_desc:
+                    field = field.desc()
+                elif need_asc:
+                    field = field.asc()
+                fields.append(field)
+            else:
+                #TODO: proper logging
+                print "WARNING: order_by field %s is not found!" % field_name
+                
+        return query_obj.order_by(fields)
 
 
     def get_items(self, order_by=None, wrap=True, filter_condition=None):
@@ -401,7 +437,7 @@ class Resource(Traversable):
     #form_factory = None
 
 
-    def __init__(self, name, parent, model, subitems_source=None, subsections = None):
+    def __init__(self, name, parent, model, subitems_source=None, subsections = None, order_by = None):
         self.__name__ = name
         self.__parent__ = parent
         self.model = model
@@ -411,6 +447,9 @@ class Resource(Traversable):
 
         if subsections is not None:
             self.subsections = subsections
+            
+        if order_by is not None:
+            self.order_by = order_by
 
 
     def __unicode__(self):
@@ -431,7 +470,7 @@ class Collection(Traversable):
     implements(ICollection)
 
 
-    def __init__(self, title=None, subitems_source=None, subsections = None):
+    def __init__(self, title=None, subitems_source=None, subsections = None, order_by = None):
         self.__name__ = None
         self.__parent__ = None
         if title is not None:
@@ -443,6 +482,9 @@ class Collection(Traversable):
         # - do not pass lists as a default argument
         if subsections is not None:
             self.subsections = subsections
+            
+        if order_by is not None:                                                                                                   
+            self.order_by = order_by                                                                                       
 
 
     def _get_title(self):

@@ -17,7 +17,7 @@
 />
 
 <view
-    for=".models.IModel"
+    for=".models.IResource"
     view=".views.save"
     name="save"
     permission="crud.edit"
@@ -31,13 +31,13 @@
 />
 
 <view
-    for=".models.IModel"
+    for=".models.IResource"
     view=".views.view"
     permission="crud.view"
 />
 
 <view
-    for=".models.IModel"
+    for=".models.IResource"
     view=".views.edit"
     name="edit"
     permission="crud.edit"
@@ -45,7 +45,7 @@
 
 
 <view
-    for=".models.IModel"
+    for=".models.IResource"
     view=".views.delete"
     name="delete"
     permission="crud.delete"

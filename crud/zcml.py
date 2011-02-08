@@ -8,7 +8,7 @@ from zope.schema import BytesLine, TextLine
 
 class IRegisterDirective(Interface):
     """
-    register directive registers an SA model with crud's ModelProxy so that proxy is
+    register directive registers an SA model with crud's Resource so that resource is
     instantiated when, for example, URL traversal is happening
     """
 
@@ -20,21 +20,21 @@ class IRegisterDirective(Interface):
         )
 
 
-    proxy = GlobalObject(
-        title=u"Crud proxy",
+    resource = GlobalObject(
+        title=u"Crud resource",
         description=u""" """,
         required=True,
         )
 
-def register(_context, model, proxy):
+def register(_context, model, resource):
     """ 
     registers an SA model with crud 
-    <crud:register model=".models.Client" proxy=".proxies.ClientProxy" />
+    <crud:register model=".models.Client" resource=".proxies.ClientResource" />
     
-    You can use ZCML or, alternatively, use the proxy_for decorator (see registry.py)
+    You can use ZCML or, alternatively, use the @resource decorator (see registry.py)
     """
     import crud
-    crud.register(model, proxy)
+    crud.register(model, resource)
 
 
 class ISectionDirective(Interface):

@@ -14,7 +14,7 @@ from pyramid.threadlocal import get_current_registry
 
 from sqlalchemy import orm
 
-from crud.registry import get_proxy_for_model
+from crud.registry import get_resource_for_model
 
 from crud.forms.fa import FormAlchemyFormFactory
 
@@ -23,7 +23,7 @@ DBSession = None
 class ITraversable(Interface):
     """ """
 
-class IModel(ITraversable):
+class IResource(ITraversable):
     """ """
 
 class ISection(ITraversable):
@@ -83,7 +83,7 @@ class Traversable(object):
         # args contain ModelProxies, not real objects
         str_args = []
         for arg in args:
-            if IModel.providedBy(arg):
+            if IResource.providedBy(arg):
                 ### TODO: Do some fancy sluggification here
                 arg = str(arg.model.id)
             else:
@@ -120,8 +120,8 @@ class Traversable(object):
 
         # 3. look up subitems
         if isinstance(self.subitems_source, str):
-            parent_model_proxy = find_interface(self, IModel)
-            model = get_related_by_id(parent_model_proxy.model, name, self.subitems_source)
+            parent_model_resource = find_interface(self, IResource)
+            model = get_related_by_id(parent_model_resource.model, name, self.subitems_source)
         else:
             if self.subitems_source is None:
                 raise KeyError
@@ -164,7 +164,7 @@ class Traversable(object):
         return self.subsections and len(self.subsections.keys())
 
     def parent_model(self):
-        model = find_interface(self, IModel)
+        model = find_interface(self, IResource)
         return model
 
     def parent_section(self):
@@ -291,7 +291,7 @@ class Traversable(object):
 
             ### TODO: This approach is not very nice because we have to copy
             ### all settings to the new object (which is getting discarded anyway)
-            ### use some sort of proxy objects which refer to the original
+            ### use some sort of resource objects which refer to the original
             ### (and immutable) section?
             section.show_in_breadcrumbs = origin.show_in_breadcrumbs
 
@@ -306,8 +306,8 @@ class Traversable(object):
         """
         related_class = self.get_subitems_class()
         if isinstance(self.subitems_source, str):
-            parent_model_proxy = find_interface(self, IModel)
-            parent_class = parent_model_proxy.model
+            parent_model_resource = find_interface(self, IResource)
+            parent_class = parent_model_resource.model
             q = DBSession.query(related_class)
             q = q.with_parent(parent_class, self.subitems_source)
         else:
@@ -346,7 +346,7 @@ class Traversable(object):
 
         result = q.all()
 
-        ### wrap them in the location-aware proxy
+        ### wrap them in the location-aware resource
         if wrap and len(result):
             result = [self.wrap_child(model=model, name=str(model.id)) for model in result]
 
@@ -382,16 +382,16 @@ class Traversable(object):
 
     def wrap_child(self, model, name):
         """
-        Wrap a model in a correct subsclass of ModelProxy
+        Wrap a model in a correct subsclass of Resource
         and return it as a subitem
         """
-        proxy_class = get_proxy_for_model(model.__class__)
-        return proxy_class(name=name, parent=self, model=model)
+        resource_class = get_resource_for_model(model.__class__)
+        return resource_class(name=name, parent=self, model=model)
 
-class ModelProxy(Traversable):
-    implements(IModel)
+class Resource(Traversable):
+    implements(IResource)
 
-    pretty_name = 'Model'
+    pretty_name = 'Resource'
 
     # Set FA form factory as the default (as this is the only one
     # functional factory at the moment anyway)
@@ -457,28 +457,6 @@ class Section(Traversable):
     def __repr__(self):
         return "Section %s (%s)" % (self.title, self.subitems_source)
 
-
-    #def with_parent(self, parent, name):
-        #"""
-        #returns a copy of the section
-        #inserted in the 'traversal context'
-        #"""
-        ##if self.__parent__ == parent:
-        ##    self.__name__ = name
-        ##    return self
-
-        #section = self.__class__(title=self.title,
-            #subitems_source=self.subitems_source,
-            #subsections = self.subsections )
-        #section.__name__ = name
-        #section.__parent__ = parent
-
-        #### TODO: This approach is not very nice because we have to copy
-        #### all settings to the new object (which is getting discarded anyway)
-        #### use some sort of proxy objects which refer to the original
-        #### (and immutable) section?
-        #section.show_in_breadcrumbs = self.show_in_breadcrumbs
-        #return section
 
 
 crud_root = None

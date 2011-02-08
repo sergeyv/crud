@@ -3,7 +3,7 @@ from formalchemy import FieldSet
 
 class FormAlchemyFormFactory(object):
 
-    def readonly_form(self, proxy):
+    def readonly_form(self, resource):
         """
         returns a read-only view of a model
         """
@@ -12,10 +12,10 @@ class FormAlchemyFormFactory(object):
         # subitems_source can be a class or a str here
         # we're only interested in str, as it's the name
         # of an attribute
-        for (key, ss) in proxy.subsections.items():
+        for (key, ss) in resource.subsections.items():
             exclude.append(ss.subitems_source)
 
-        fs = FieldSet(proxy.model)
+        fs = FieldSet(resource.model)
         include = []
         # render models's fields using FA
         # TODO: there's a way to set this on the form itself
@@ -29,29 +29,29 @@ class FormAlchemyFormFactory(object):
         fs.configure(include=include)
         return fs.render()
 
-    def edit_form(self, proxy):
+    def edit_form(self, resource):
         """
         returns an edit form for the model
         """
-        fs = FieldSet(proxy.model)
+        fs = FieldSet(resource.model)
         return fs.render()
 
-    def add_form(self, proxy, dbsession):
+    def add_form(self, resource, dbsession):
         """
         returns an edit form for the model
         """
 
-        fs = FieldSet(proxy.create_subitem(), session=dbsession)
+        fs = FieldSet(resource.create_subitem(), session=dbsession)
 
         #
         # Make the foreign key fields read-only in the add form
         #
         # 1. If it's a str, we're inside a subsection filtered by
         # our parent
-        if isinstance(proxy.subitems_source, str):
-            parent_wrapper = proxy.parent_model()
+        if isinstance(resource.subitems_source, str):
+            parent_wrapper = resource.parent_model()
             parent_instance = parent_wrapper.model
-            relation_attr = getattr(parent_instance.__class__, proxy.subitems_source)
+            relation_attr = getattr(parent_instance.__class__, resource.subitems_source)
             child_attr_name = getattr(relation_attr.property.backref, 'key', None)
             if child_attr_name is not None:
                 fs.render_fields[child_attr_name] = fs.render_fields[child_attr_name].hidden()

@@ -7,7 +7,8 @@ from webob.exc import HTTPFound
 from formalchemy import FieldSet
 from crud.models import DBSession
 
-from crud import IModel, ISection, ModelProxy
+
+from crud import IResource, ISection, Resource
 
 from crud.views.theme import Theme
 
@@ -22,7 +23,7 @@ def index(context,request):
                  )
 
 def view(context, request):
-    #context is ModelProxy here
+    #context is Resource here
     theme = Theme(context, request)
 
     return render('templates/view.pt',
@@ -33,7 +34,7 @@ def view(context, request):
                   )
 
 def edit(context, request):
-    # context is ModelProxy here
+    # context is Resource here
     theme = Theme(context, request)
     #fs = FieldSet(context.model)
     import schemaish
@@ -58,9 +59,9 @@ def add(context, request):
     theme = Theme(context, request)
     dbsession = DBSession()
     instance = context.create_subitem()
-    proxy = context.wrap_child(name=None, model=instance)
+    resource = context.wrap_child(name=None, model=instance)
 
-    form = proxy.form_factory.add_form(context,dbsession)
+    form = resource.form_factory.add_form(context,dbsession)
 
     return render('templates/add.pt',
                   instance = instance,
@@ -92,13 +93,13 @@ def save_new(context, request):
     if 'form.button.cancel' in request.params:
         return HTTPFound(location=success_url)
     instance = context.create_subitem()
-    proxy = context.wrap_child(name=None, model=instance)
+    resource = context.wrap_child(name=None, model=instance)
     dbsession = DBSession()
     #fs = FieldSet(instance, session=dbsession)
     #fs.rebind(instance, data=request.params)
     #if fs.validate():
     #    fs.sync()
-    success = proxy.form_factory.save(model=instance, data=request.params, session=dbsession)
+    success = resource.form_factory.save(model=instance, data=request.params, session=dbsession)
     if success:
         dbsession.add(instance)
         return HTTPFound(location=success_url)

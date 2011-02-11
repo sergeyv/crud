@@ -59,18 +59,19 @@ def get_related_by_id(obj, id, property_name=None):
 class Traversable(object):
     """
     A base class which implements stuff needed
-    for 'traversability'
+    for 'traversability'.
     """
     implements(ITraversable)
-    #__name__ = ''
-    #__parent__ = None
+
     subsections = {}
     subitems_source = None
     filter_condition = None
+    
     #: A subclass can define an order_by attribute which will be used to order subitems
     #: The setting can be overridden per-request using the order_by parameter of get_items method
     #: order_by is a string in format "name;-price;+num_orders" - where a minus results in descending sorting 
     order_by = None
+    """ A docstring for order_by """
 
     show_in_breadcrumbs = True
 
@@ -425,6 +426,32 @@ class Traversable(object):
         return resource_class(name=name, parent=self, model=model)
 
 class Resource(Traversable):
+    """
+    A Resource represents an "item" wrapped around an SQLAlchemy model
+    instance. Resource objects are created dynamically during URL traversal,
+    i.e. when traversing a URL /users/3, "users" would usually be a Collection,
+    and "3" would create a Resource with its `model` attribute set to an instance
+    of SQLAlchemy-mapped User class with id=3
+
+    Resources can behave as "folderish" types:
+
+    - if `subitems_source` property is set, a Resource can directly contain other
+      items which are fetched from a model's relationship property. Say, if we have
+      a Folder model with `children` property, then we could construct a URL in form `/folders/123/234/345`
+
+    - `subsections` property defines a 'subfolder' which contains items fetched
+      from an SA relation or directly from an SA-mapped class::
+
+        @crud.resource(models.Group)
+        class GroupResource(crud.Resource):
+            subsections = {
+                'users' : crud.Collection('Users', 'users'),
+                'roles' : crud.Collection('All Roles', models.UserRole)
+            }
+
+          
+    
+    """
     implements(IResource)
 
     pretty_name = 'Resource'
@@ -433,8 +460,6 @@ class Resource(Traversable):
     # functional factory at the moment anyway)
 
     form_factory = FormAlchemyFormFactory()
-
-    #form_factory = None
 
 
     def __init__(self, name, parent, model, subitems_source=None, subsections = None, order_by = None):
@@ -457,16 +482,74 @@ class Resource(Traversable):
 
     @property
     def title(self):
+        """
+        Returns string representation of the model. Used in crud's UI
+        """
+        
         return str(self.model)
-        #return getattr(self.model, 'title',
-        #            getattr(self.model, 'name',
-        #            "%s %s" % (self.pretty_name, self.model.id)))
 
 
     def delete_item(self, request=None):
+        """
+        Deletes the model from the database
+        """
         DBSession.delete(self.model)
 
 class Collection(Traversable):
+    """
+    A `Collection` is a virtual "folder" which is defined in code and not mapped
+    to an SQLAlchemy model. It can contain other Collections or Resources.
+
+    A Collection can be purely 'virtual' and not related to any SQL data::
+
+
+        class AboutCollection(crud.Collection):
+            pass
+            
+        class RootCollection(crud.Collection):
+
+            subsections = {
+                'about' : AboutCollection,
+            }
+
+    This code will create a "root collection" which can be registered with::
+
+        import crud
+
+        crud.crud_init(DBSession, RootCollection)
+
+    After this, the `/` url will be mapped to the default view attached the RootCollection and `/about` will invoke the view attached to the AboutCollection
+
+    Also, we can use a Collection as a folder which contains all items of some SA-mapped class::
+
+         class RootCollection(crud.Collection):
+
+            subsections = {
+                'members' : crud.Collection("Our beloved members", models.Member),
+            }
+
+    This declaration will create a 'members' folder which contains `Resource` objects wrapped around `Member` SA models. They will be accessible as `/members/123` etc., where `123` is the ID of corresponding Member object.
+
+    Apart from that, we can map a Collection to a relationship attribute of an SA model, so the Collection will contain "subitems" of a particular "item". Continuing the previous example::
+
+        @crud.resource(models.Member)
+        class MemberResource(crud.Resource):
+
+            subsections = {
+                'photos' : crud.Collection("Member's photos", "photos")
+            }
+
+    Here we're telling `crud` to create a Collection which contains photos belonging to a particular member, using `photos` relationship property defined on the Member class. This will result in the following URLs:
+    
+        - `/members/123` will display a Member
+        
+        - `/members/123/photos` will display a list of photos belonging to the Member #123
+        
+        - `/members/123/photos/34` will display a Photo with id=32 belonging to the Member #123
+        
+
+    """
+    
     implements(ICollection)
 
 

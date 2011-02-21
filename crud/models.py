@@ -242,12 +242,11 @@ class Traversable(object):
             # TODO: figure out how to get FK name in this case
             obj =  self.subitems_source()
 
-        # Set the initial values
-        if params is not None:
-            for (k,v) in params.items():
-                if v: # do not set empty fields
-                    setattr(obj, k, v)
 
+        if params is not None:
+            resource = self.wrap_child(model=obj, name=str(obj.id))
+            resource.update_model(params)
+            
         return obj
 
     def delete_subitems(self, ids):
@@ -494,6 +493,15 @@ class Resource(Traversable):
         Deletes the model from the database
         """
         DBSession.delete(self.model)
+
+
+    def update_model(self, params):
+        # TODO: Add validation here
+        item = self.model
+        import pdb; pdb.set_trace();
+        for (k,v) in params.items():
+            if v: # Do not set empty fields
+                setattr(item, k, v)
 
 class Collection(Traversable):
     """

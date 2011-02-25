@@ -8,7 +8,7 @@
 
 <body>
 <metal:header fill-slot="header">
-<h1>Edit ${context.pretty_name}</h1>
+<h1>Edit</h1>
 </metal:header>
 
 <metal:main fill-slot="main">

@@ -67,11 +67,13 @@ class Traversable(object):
     subitems_source = None
     filter_condition = None
     
-    #: A subclass can define an order_by attribute which will be used to order subitems
-    #: The setting can be overridden per-request using the order_by parameter of get_items method
-    #: order_by is a string in format "name;-price;+num_orders" - where a minus results in descending sorting 
+
     order_by = None
-    """ A docstring for order_by """
+    """
+    A subclass may define an order_by attribute which will be used to order subitems
+    The setting can be overridden per-request using the order_by parameter of get_items method
+    order_by is a string in format "name;-price;+num_orders" - where a minus results in descending sorting
+    """
 
     show_in_breadcrumbs = True
 
@@ -98,6 +100,13 @@ class Traversable(object):
         return resource_url(self, request, *str_args)
 
     def __getitem__(self, name):
+        """
+        This method is crucial to make an object traversable by Pyramid.
+
+        Firstly, it checks if we have a view with the name 'name' registered.
+        Secondly, we look up our subsections.
+        Lastly, if subitems_source is set, we look up subitems.
+        """
 
         # 1. check if it's our own view
         registry = get_current_registry()
@@ -370,8 +379,9 @@ class Traversable(object):
     def get_items(self, order_by=None, wrap=True, filter_condition=None):
         """
         Returns all subitems of the Traversable
-        @param order_by - the name of the field to order the result by
-        @param wrap - whether to wrap the result in ModelProxies or return raw SA objects
+        
+        ``order_by`` - the name of the field to order the result by
+        ``wrap`` - whether to wrap the result in ModelProxies or return raw SA objects
         TODO: Add descending sorting and possibly other filtering
         """
 
@@ -453,12 +463,12 @@ class Resource(Traversable):
     """
     implements(IResource)
 
-    pretty_name = 'Resource'
-
-    # Set FA form factory as the default (as this is the only one
-    # functional factory at the moment anyway)
 
     form_factory = FormAlchemyFormFactory()
+    """
+    Set FA form factory as the default (as this is the only one
+    functional factory at the moment anyway)
+    """
 
 
     def __init__(self, name, parent, model, subitems_source=None, subsections = None, order_by = None):
@@ -496,6 +506,13 @@ class Resource(Traversable):
 
 
     def update_model(self, params):
+        """
+        A basic method which accepts a dictionary with data
+        and applies it to the model.
+
+        There's currently no validation or schema checks
+        """
+        
         # TODO: Add validation here
         item = self.model
         import pdb; pdb.set_trace();
@@ -599,6 +616,9 @@ def get_root(environ=None):
 
 
 def crud_init( session, root ):
+    """
+    Initializes crud setting the traversal root and an SA session
+    """
     global DBSession
     DBSession = session
 

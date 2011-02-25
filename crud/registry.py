@@ -23,8 +23,6 @@ def get_resource_for_model(model_class):
         # the generic Resource
         from crud.models import Resource
         return Resource
-        # A more meaningful error message
-        #raise KeyError("%s has not been registered with crud" % model_class)
 
 
 class resource(object):

@@ -254,7 +254,7 @@ class Traversable(object):
 
         if params is not None:
             resource = self.wrap_child(model=obj, name=str(obj.id))
-            resource.update_model(params)
+            resource.deserialize(params)
             
         return obj
 
@@ -505,7 +505,7 @@ class Resource(Traversable):
         DBSession.delete(self.model)
 
 
-    def update_model(self, params):
+    def deserialize(self, params):
         """
         A basic method which accepts a dictionary with data
         and applies it to the model.

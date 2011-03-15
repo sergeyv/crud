@@ -515,13 +515,10 @@ class Resource(Traversable):
         
         # TODO: Add validation here
         item = self.model
-<<<<<<< HEAD
         
         # Un-comment to turn on debugger
         #import pdb; pdb.set_trace();
         
-=======
->>>>>>> d7fc4197399f6f87296cc1cd0d7b7af90639da09
         for (k,v) in params.items():
             if v: # Do not set empty fields
                 setattr(item, k, v)

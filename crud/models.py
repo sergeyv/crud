@@ -66,7 +66,7 @@ class Traversable(object):
     subsections = {}
     subitems_source = None
     filter_condition = None
-    
+
 
     order_by = None
     """
@@ -243,7 +243,7 @@ class Traversable(object):
                 # this is a one-to-one relation, so we assign the object to the
                 # attribute
                 setattr(parent_instance, self.subitems_source, child_instance)
-                
+
             obj = child_instance
         else:
             # subitems_source is a class -
@@ -255,7 +255,7 @@ class Traversable(object):
         if params is not None:
             resource = self.wrap_child(model=obj, name=str(obj.id))
             resource.deserialize(params)
-            
+
         return obj
 
     def delete_subitems(self, ids):
@@ -318,6 +318,7 @@ class Traversable(object):
         """
         Returns the query which can be further modified
         """
+
         related_class = self.get_subitems_class()
         if isinstance(self.subitems_source, str):
             parent_model_resource = find_interface(self, IResource)
@@ -372,14 +373,17 @@ class Traversable(object):
             else:
                 #TODO: proper logging
                 print "WARNING: order_by field %s is not found!" % field_name
-                
-        return query_obj.order_by(fields)
+
+        if fields:
+            return query_obj.order_by(fields)
+        else:
+            return query_obj
 
 
     def get_items(self, order_by=None, wrap=True, filter_condition=None):
         """
         Returns all subitems of the Traversable
-        
+
         ``order_by`` - the name of the field to order the result by
         ``wrap`` - whether to wrap the result in ModelProxies or return raw SA objects
         TODO: Add descending sorting and possibly other filtering
@@ -458,8 +462,8 @@ class Resource(Traversable):
                 'roles' : crud.Collection('All Roles', models.UserRole)
             }
 
-          
-    
+
+
     """
     implements(IResource)
 
@@ -481,7 +485,7 @@ class Resource(Traversable):
 
         if subsections is not None:
             self.subsections = subsections
-            
+
         if order_by is not None:
             self.order_by = order_by
 
@@ -494,7 +498,7 @@ class Resource(Traversable):
         """
         Returns string representation of the model. Used in crud's UI
         """
-        
+
         return str(self.model)
 
 
@@ -512,13 +516,10 @@ class Resource(Traversable):
 
         There's currently no validation or schema checks
         """
-        
+
         # TODO: Add validation here
         item = self.model
-        
-        # Un-comment to turn on debugger
-        #import pdb; pdb.set_trace();
-        
+
         for (k,v) in params.items():
             if v: # Do not set empty fields
                 setattr(item, k, v)
@@ -533,7 +534,7 @@ class Collection(Traversable):
 
         class AboutCollection(crud.Collection):
             pass
-            
+
         class RootCollection(crud.Collection):
 
             subsections = {
@@ -568,16 +569,16 @@ class Collection(Traversable):
             }
 
     Here we're telling `crud` to create a Collection which contains photos belonging to a particular member, using `photos` relationship property defined on the Member class. This will result in the following URLs:
-    
+
         - `/members/123` will display a Member
-        
+
         - `/members/123/photos` will display a list of photos belonging to the Member #123
-        
+
         - `/members/123/photos/34` will display a Photo with id=32 belonging to the Member #123
-        
+
 
     """
-    
+
     implements(ICollection)
 
 
@@ -593,9 +594,9 @@ class Collection(Traversable):
         # - do not pass lists as a default argument
         if subsections is not None:
             self.subsections = subsections
-            
-        if order_by is not None:                                                                                                   
-            self.order_by = order_by                                                                                       
+
+        if order_by is not None:
+            self.order_by = order_by
 
 
     def _get_title(self):

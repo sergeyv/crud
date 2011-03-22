@@ -17,6 +17,7 @@ from sqlalchemy import orm
 from crud.registry import get_resource_for_model
 
 from crud.forms.fa import FormAlchemyFormFactory
+from sqlalchemy.sql.expression import desc, asc
 
 DBSession = None
 
@@ -362,7 +363,6 @@ class Traversable(object):
 
         if order_by is not None:
             q = self._build_order_by_clause(q, related_class, order_by)
-
         return q
 
 
@@ -388,15 +388,27 @@ class Traversable(object):
                 elif need_asc:
                     field = field.asc()
                 fields.append(field)
+            elif field_name.find('.') != -1:
+                #The branch below is to allow sorting on the sub.objects in the sqlalchemy relationship model
+                #Grab the information in split notation relation_object.column_name contact.client for example
+                split = field_name.split('.')
+                #Create a join on the object to allow proper table referencing
+                query_obj = query_obj.join(getattr(item_class, split[0]))
+                #grab the table name from the __mapper__ as it doesn't lie in item_class.{relation_object}
+                field_name = "{table_name}.{column_name}".format(
+                        table_name=item_class.__mapper__.get_property(split[0]).table.key, column_name=split[1])
+                if need_desc:
+                    field = desc(field_name)
+                elif need_asc:
+                    field = asc(field_name)
+                fields.append(field)
             else:
                 #TODO: proper logging
                 print "WARNING: order_by field %s is not found!" % field_name
-
         if fields:
             return query_obj.order_by(fields)
         else:
             return query_obj
-
 
     def get_items(self, order_by=None, wrap=True, filter_condition=None):
         """

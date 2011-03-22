@@ -258,6 +258,24 @@ class Traversable(object):
 
         return obj
 
+    def create_transient_subitem(self):
+        """
+        Just like create_subitem only makes sure the new item is
+        not added to session and there are no other persistent side-effects,
+        so the item can be safely discarded after we no longer need it
+        """
+        if isinstance(self.subitems_source, str):
+            parent_wrapper = self.parent_model()
+            parent_instance = parent_wrapper.model
+            relation_attr = getattr(parent_instance.__class__, self.subitems_source)
+            related_class = self.get_class_from_relation(relation_attr)
+            return related_class()
+        else:
+            # subitems_source is a class -
+            # - just create an instance and return it
+            return  self.subitems_source()
+
+
     def delete_subitems(self, ids):
         """
         Deletes subitems which ids match the list of ids

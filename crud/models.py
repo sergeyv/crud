@@ -383,6 +383,10 @@ class Traversable(object):
             field_name = obs.lstrip('+-')
             field = getattr(item_class, field_name, None)
             if field is not None:
+
+                if not isinstance(field.impl.parent_token, orm.properties.ColumnProperty):
+                    raise AttributeError("You're trying to order by '%s', which is not a proper column (a relationship maybe?)" % field_name)
+
                 if need_desc:
                     field = field.desc()
                 elif need_asc:
@@ -403,8 +407,7 @@ class Traversable(object):
                     field = asc(field_name)
                 fields.append(field)
             else:
-                #TODO: proper logging
-                print "WARNING: order_by field %s is not found!" % field_name
+                raise AttributeError("WARNING: order_by field '%s' is not found!" % field_name)
         if fields:
             return query_obj.order_by(fields)
         else:

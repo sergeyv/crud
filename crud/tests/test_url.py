@@ -10,7 +10,7 @@ class ModelURLTests(unittest.TestCase):
 
     def tearDown(self):
         cleanUp()
-        
+
     def _callFUT(self, model, request, *elements, **kw):
         from pyramid.url import model_url
         return model_url(model, request, *elements, **kw)
@@ -30,10 +30,10 @@ class ModelURLTests(unittest.TestCase):
 
     def test_root_default(self):
         #self._registerContextURL()
-        
-        
+
+
         about_section = Collection(
-            "About", 
+            "About",
             subsections = {
            'one' : Collection('Page One!'),
            'two' : Collection('A folder!',
@@ -47,17 +47,18 @@ class ModelURLTests(unittest.TestCase):
         root = Collection(
             "Kelpie!",
             subsections = dict(
-                about = about_section 
+                about = about_section
                 )
         )
 
         request = DummyRequest()
-        about = about_section.with_parent(root, 'about')
-        one = about.subsections['one'].with_parent(about,'one')
+        about = root.subsections['about']
+        #about = about_section.with_parent(root, 'about')
+        one = about.subsections['one']
         result = self._callFUT(about_section, request)
-        self.assertEqual(result, 'http://example.com/')
+        self.assertEqual(result, 'http://example.com:5432/')
 
-        
+
 class DummyRequest:
     application_url = 'http://example.com:5432' # app_url never ends with slash
     def __init__(self, environ=None):

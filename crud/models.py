@@ -395,20 +395,35 @@ class Traversable(object):
             elif field_name.find('.') != -1:
                 #The branch below is to allow sorting on the sub.objects in the sqlalchemy relationship model
                 #Grab the information in split notation relation_object.column_name contact.client for example
-                split = field_name.split('.')
-                #Create a join on the object to allow proper table referencing
-                query_obj = query_obj.join(getattr(item_class, split[0]))
-                #grab the table name from the __mapper__ as it doesn't lie in item_class.{relation_object}
-                field_name = "{table_name}.{column_name}".format(
-                        table_name=item_class.__mapper__.get_property(split[0]).table.key, column_name=split[1])
+                parts = field_name.split('.')
+                relation_name = parts[0]
+                attribute_name = parts[1]
+
+                query_obj = query_obj.join(getattr(item_class, relation_name))
+                relation = getattr(item_class, relation_name)
+
+                arg = relation.property.argument
+                ### TODO: This is not a proper test, it's just a coincidence
+                ### thet it's callable in one case and not callable in another
+                if callable(arg):
+                    # the relationship is defined on our class
+                    related_class = arg()
+                else:
+                    # the relationship is defined on the other class,
+                    # and we have a backref, so arg is a Mapper object
+                    related_class = arg.class_
+
+                attr = getattr(related_class.__class__, attribute_name)
+
                 if need_desc:
-                    field = desc(field_name)
+                    field = desc(attr)
                 elif need_asc:
-                    field = asc(field_name)
+                    field = asc(attr)
                 fields.append(field)
             else:
-                raise AttributeError("WARNING: order_by field '%s' is not found!" % field_name)
+                raise AttributeError("WARNING: order_by field '%s' not found!" % field_name)
         if fields:
+            print "GENERATED SQL: %s" % str(query_obj.order_by(fields))
             return query_obj.order_by(fields)
         else:
             return query_obj

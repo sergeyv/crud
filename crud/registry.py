@@ -27,12 +27,12 @@ def get_resource_for_model(model_class):
 
 class resource(object):
     """
-    A decorator which syntax-sugares registering:
-    
-    @crud.resource(models.Client)
-    class ClientResource(crud.Resource):
-        ...
-        
+    A decorator which syntax-sugares registering::
+
+        @crud.resource(models.Client)
+        class ClientResource(crud.Resource):
+            ...
+
     """
     def __init__(self, model):
         self.model = model

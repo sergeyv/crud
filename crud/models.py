@@ -161,8 +161,8 @@ class Traversable(object):
         if type(self.subsections) == tuple:
             self.subsections = self.subsections[0]
 
-        for s in self.subsections:
-            print s
+        #for s in self.subsections:
+        #    print s
         subs = []
         for (n,s) in self.subsections.items():
             subs.append(self.create_child_subsection(s,n))
@@ -300,9 +300,6 @@ class Traversable(object):
                 raise KeyError("%s.%s is not a scalar attribute, need to provide a list of ids to delete subitems" % (parent_instance.__class__.__name__, self.subitems_source))
             else:
                 # this is a one-to-one relation (or probably the 'one' end of one-to-meny relation?) so we need to delete the item itself
-                #qry = self.get_items_query()
-                #print "QUERY IS %s" % qry
-                #qry.delete()
                 item = getattr(parent_instance, self.subitems_source)
                 DBSession.delete(item)
 
@@ -399,21 +396,25 @@ class Traversable(object):
                 relation_name = parts[0]
                 attribute_name = parts[1]
 
-                query_obj = query_obj.join(getattr(item_class, relation_name))
+                # outerjoin returns all items even if the related field is NULL
+                query_obj = query_obj.outerjoin(getattr(item_class, relation_name))
                 relation = getattr(item_class, relation_name)
 
                 arg = relation.property.argument
+
                 ### TODO: This is not a proper test, it's just a coincidence
                 ### thet it's callable in one case and not callable in another
                 if callable(arg):
                     # the relationship is defined on our class
                     related_class = arg()
-                else:
+                #else:
                     # the relationship is defined on the other class,
                     # and we have a backref, so arg is a Mapper object
-                    related_class = arg.class_
+                #    related_class = arg.class_
 
-                attr = getattr(related_class.__class__, attribute_name)
+                if not isinstance(related_class, type):
+                    related_class = related_class.__class__
+                attr = getattr(related_class, attribute_name)
 
                 if need_desc:
                     field = desc(attr)

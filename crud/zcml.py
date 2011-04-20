@@ -71,7 +71,6 @@ def section(_context, slug, title, section, model=None):
     import crud
 
     root = crud.get_root()
-    print "Registering section %s (%s)" % (slug, title)
 
     # Avoid assigning stuff to the class attribute
     if root is not None:

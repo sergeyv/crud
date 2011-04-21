@@ -294,26 +294,27 @@ class Traversable(object):
         for a scalar relation the calling code may pass ids = None
         """
 
-        # TODO: Call a before_item_deleted hook here!
-
-        #if hasattr(context, "before_item_deleted"):
-        #    context.before_item_deleted(request)
-
         if ids is not None:
             if len(ids):
                 cls = self.get_subitems_class()
 
-
+                ## TODO: Should we not try to over-optimize and just
+                ## call resource.delete_item() instead of attemptimg to
+                ## delete everything with a single query? Would this be
+                ## better in terms of less surprises when overriding delete_item
+                ## method, for example?
                 qry = self.get_items_query()
                 qry = qry.filter(cls.id.in_(ids))
 
                 # Call the before_item_deleted hook for each item
                 for item in qry.all():
                     resource = self.wrap_child(item, name=item.id)
-                    if hasattr(resource, "before_item_deleted"):
-                        resource.before_item_deleted(request)
+                    resource.delete_item(request)
 
-                qry.delete(synchronize_session=False) # we may have some stale objects in the session with synchronize_session=False, but do we really care? If we do, may change this to "fetch"
+                    #if hasattr(resource, "before_item_deleted"):
+                    #    resource.before_item_deleted(request)
+
+                #qry.delete(synchronize_session=False) # we may have some stale objects in the session with synchronize_session=False, but do we really care? If we do, may change this to "fetch"
         else:
             parent_wrapper = self.parent_model()
             parent_instance = parent_wrapper.model
@@ -330,10 +331,7 @@ class Traversable(object):
                 item = getattr(parent_instance, self.subitems_source)
 
                 resource = self.wrap_child(item, name=item.id)
-                if hasattr(resource, "before_item_deleted"):
-                    resource.before_item_deleted(request)
-
-                DBSession.delete(item)
+                resource.delete_item(request)
 
 
 

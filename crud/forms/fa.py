@@ -41,7 +41,7 @@ class FormAlchemyFormFactory(object):
         returns an edit form for the model
         """
 
-        fs = FieldSet(resource.create_subitem(), session=dbsession)
+        fs = FieldSet(resource.create_transient_subitem(), session=dbsession)
 
         #
         # Make the foreign key fields read-only in the add form

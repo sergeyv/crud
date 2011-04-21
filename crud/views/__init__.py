@@ -58,13 +58,12 @@ def add(context, request):
     # context is Collection here
     theme = Theme(context, request)
     dbsession = DBSession()
-    instance = context.create_subitem()
-    resource = context.wrap_child(name=None, model=instance)
+    resource = context.create_subitem(wrap=True)
 
     form = resource.form_factory.add_form(context,dbsession)
 
     return render('templates/add.pt',
-                  instance = instance,
+                  instance = resource.model,
                   theme = theme,
                   form = form,
                   context = context,
@@ -92,16 +91,11 @@ def save_new(context, request):
 
     if 'form.button.cancel' in request.params:
         return HTTPFound(location=success_url)
-    instance = context.create_subitem()
-    resource = context.wrap_child(name=None, model=instance)
+    resource = context.create_subitem(wrap=True)
     dbsession = DBSession()
-    #fs = FieldSet(instance, session=dbsession)
-    #fs.rebind(instance, data=request.params)
-    #if fs.validate():
-    #    fs.sync()
-    success = resource.form_factory.save(model=instance, data=request.params, session=dbsession)
+    success = resource.form_factory.save(model=resource.model, data=request.params, session=dbsession)
     if success:
-        dbsession.add(instance)
+        dbsession.add(resource.model)
         return HTTPFound(location=success_url)
     return HTTPFound(location=failure_url)
 

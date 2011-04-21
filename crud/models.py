@@ -215,7 +215,7 @@ class Traversable(object):
         else:
             return self.subitems_source
 
-    def create_subitem(self, params=None, request=None):
+    def create_subitem(self, params=None, request=None, wrap=False):
         """
         Creates a new subitem and sets its FK to its
         parent model's PK (if any)
@@ -253,11 +253,21 @@ class Traversable(object):
             obj =  self.subitems_source()
 
 
-        if params is not None:
-            resource = self.wrap_child(model=obj, name=str(obj.id))
-            resource.deserialize(params)
+        resource = self.wrap_child(model=obj, name=str(obj.id))
 
-        return obj
+        if params is not None:
+            resource.deserialize(params, request)
+
+        DBSession.add(obj)
+        DBSession.flush()
+
+        if hasattr(resource, "after_item_created"):
+            resource.after_item_created(request)
+
+        if wrap:
+            return resource
+
+        return resource.model
 
     def create_transient_subitem(self):
         """
@@ -277,19 +287,36 @@ class Traversable(object):
             return  self.subitems_source()
 
 
-    def delete_subitems(self, ids):
+    def delete_subitems(self, ids, request):
         """
         Deletes subitems which ids match the list of ids
+
+        for a scalar relation the calling code may pass ids = None
         """
+
+        # TODO: Call a before_item_deleted hook here!
+
+        #if hasattr(context, "before_item_deleted"):
+        #    context.before_item_deleted(request)
+
         if ids is not None:
-            cls = self.get_subitems_class()
-            qry = self.get_items_query()
-            qry.filter(cls.id.in_(ids)).delete()
+            if len(ids):
+                cls = self.get_subitems_class()
+
+
+                qry = self.get_items_query()
+                qry = qry.filter(cls.id.in_(ids))
+
+                # Call the before_item_deleted hook for each item
+                for item in qry.all():
+                    resource = self.wrap_child(item, name=item.id)
+                    if hasattr(resource, "before_item_deleted"):
+                        resource.before_item_deleted(request)
+
+                qry.delete(synchronize_session=False) # we may have some stale objects in the session with synchronize_session=False, but do we really care? If we do, may change this to "fetch"
         else:
             parent_wrapper = self.parent_model()
             parent_instance = parent_wrapper.model
-            #relation_attr = getattr(parent_instance.__class__, self.subitems_source)
-            #related_class = self.get_class_from_relation(relation_attr)
 
             # Check if the property is a vector (one-to-many) or a scalar (one-to-one) built using uselist=False in the relation
             mapper = orm.class_mapper(parent_instance.__class__)
@@ -301,6 +328,11 @@ class Traversable(object):
             else:
                 # this is a one-to-one relation (or probably the 'one' end of one-to-meny relation?) so we need to delete the item itself
                 item = getattr(parent_instance, self.subitems_source)
+
+                resource = self.wrap_child(item, name=item.id)
+                if hasattr(resource, "before_item_deleted"):
+                    resource.before_item_deleted(request)
+
                 DBSession.delete(item)
 
 
@@ -555,10 +587,24 @@ class Resource(Traversable):
         """
         Deletes the model from the database
         """
+
+        if hasattr(self, "before_item_deleted"):
+            self.before_item_deleted(request)
+
         DBSession.delete(self.model)
 
 
-    def deserialize(self, params):
+    def update(self, params, request):
+        self.deserialize(params, request)
+
+        #Flush session so changes have been applied
+        # before we call the after context hook
+        DBSession.flush()
+
+        if hasattr(self, "after_item_updated"):
+            self.after_item_updated(request)
+
+    def deserialize(self, params, request):
         """
         A basic method which accepts a dictionary with data
         and applies it to the model.

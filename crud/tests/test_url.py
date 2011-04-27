@@ -28,7 +28,7 @@ class ModelURLTests(unittest.TestCase):
         sm.registerAdapter(DummyContextURL, (Interface, Interface),
                            IContextURL)
 
-    def test_root_default(self):
+    def notest_root_default(self):
         #self._registerContextURL()
 
 

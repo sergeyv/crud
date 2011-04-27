@@ -399,6 +399,8 @@ class Traversable(object):
         order_by clause for a query. Returns the modified query
         """
 
+        if not isinstance(item_class, type):
+            raise AttributeError("item_class should be a type")
         fields = []
         for obs in order_by_str.split(';'):
             obs = obs.strip()
@@ -407,52 +409,36 @@ class Traversable(object):
             need_desc = (obs[0] == '-')
             need_asc  = (obs[0] == '+')
 
-            field_name = obs.lstrip('+-')
-            field = getattr(item_class, field_name, None)
-            if field is not None:
+            parts = obs.lstrip('+-').split('.')
+            relations = parts[:-1]
+            attribute_name = parts[-1]
+            current_class = item_class
+            for rel_name in relations:
+                relation = getattr(current_class, rel_name)
+                if relation is None:
+                    raise AttributeError("WARNING: class %s has no relation %s" % (current_class, rel_name))
 
-                if not isinstance(field.impl.parent_token, orm.properties.ColumnProperty):
-                    raise AttributeError("You're trying to order by '%s', which is not a proper column (a relationship maybe?)" % field_name)
+                current_class = self.get_class_from_relation(relation)
+                if not isinstance(current_class, type):
+                    current_class = current_class.__class__
+                ## outerjoin returns all items even if the related field is NULL
+                query_obj = query_obj.outerjoin(relation)
 
-                if need_desc:
-                    field = field.desc()
-                elif need_asc:
-                    field = field.asc()
-                fields.append(field)
-            elif field_name.find('.') != -1:
-                #The branch below is to allow sorting on the sub.objects in the sqlalchemy relationship model
-                #Grab the information in split notation relation_object.column_name contact.client for example
-                parts = field_name.split('.')
-                relation_name = parts[0]
-                attribute_name = parts[1]
+            field = getattr(current_class, attribute_name)
 
-                # outerjoin returns all items even if the related field is NULL
-                query_obj = query_obj.outerjoin(getattr(item_class, relation_name))
-                relation = getattr(item_class, relation_name)
+            if field is None:
+                raise AttributeError("Class %s has no attribute %s" % (current_class, attribute_name))
 
-                arg = relation.property.argument
+            if not isinstance(field.impl.parent_token, orm.properties.ColumnProperty):
+                raise AttributeError("You're trying to order by '%s', which is not a proper column (a relationship maybe?)" % attribute_name)
 
-                ### TODO: This is not a proper test, it's just a coincidence
-                ### thet it's callable in one case and not callable in another
-                if callable(arg):
-                    # the relationship is defined on our class
-                    related_class = arg()
-                #else:
-                    # the relationship is defined on the other class,
-                    # and we have a backref, so arg is a Mapper object
-                #    related_class = arg.class_
+            if need_desc:
+                field = field.desc()
+            elif need_asc:
+                field = field.asc()
+            fields.append(field)
 
-                if not isinstance(related_class, type):
-                    related_class = related_class.__class__
-                attr = getattr(related_class, attribute_name)
 
-                if need_desc:
-                    field = desc(attr)
-                elif need_asc:
-                    field = asc(attr)
-                fields.append(field)
-            else:
-                raise AttributeError("WARNING: order_by field '%s' not found!" % field_name)
         if fields:
             print "GENERATED SQL: %s" % str(query_obj.order_by(fields))
             return query_obj.order_by(fields)

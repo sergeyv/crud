@@ -24,6 +24,10 @@ def get_resource_for_model(model_class):
         from crud.models import Resource
         return Resource
 
+def get_model_for_resource(resource_class):
+    for (model_cls, res_cls) in model_registry.items():
+        if resource_class == res_cls:
+            return model_cls
 
 class resource(object):
     """

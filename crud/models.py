@@ -88,7 +88,7 @@ class Traversable(object):
         return resource_url(self.__parent__, request)
 
     def child_url(self, request, *args):
-        # args contain ModelProxies, not real objects
+        # args contain Resources, not real objects
         str_args = []
         for arg in args:
             if IResource.providedBy(arg):
@@ -450,7 +450,7 @@ class Traversable(object):
         Returns all subitems of the Traversable
 
         ``order_by`` - the name of the field to order the result by
-        ``wrap`` - whether to wrap the result in ModelProxies or return raw SA objects
+        ``wrap`` - whether to wrap the result in Resources or return raw SA objects
         TODO: Add descending sorting and possibly other filtering
         """
 

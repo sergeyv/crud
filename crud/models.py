@@ -139,7 +139,7 @@ class Traversable(object):
             model = get_related_by_id(parent_model_resource.model, name, self.subitems_source)
         else:
             if self.subitems_source is None:
-                raise KeyError
+                raise KeyError("subitems_source is not set")
 
             # Some RDBMSes are not happy when we pass a string where
             # it expects a number. And id should be a number.
@@ -161,8 +161,6 @@ class Traversable(object):
         if type(self.subsections) == tuple:
             self.subsections = self.subsections[0]
 
-        #for s in self.subsections:
-        #    print s
         subs = []
         for (n,s) in self.subsections.items():
             subs.append(self.create_child_subsection(s,n))
@@ -440,7 +438,6 @@ class Traversable(object):
 
 
         if fields:
-            print "GENERATED SQL: %s" % str(query_obj.order_by(fields))
             return query_obj.order_by(fields)
         else:
             return query_obj

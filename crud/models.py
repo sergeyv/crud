@@ -53,6 +53,8 @@ def get_related_by_id(obj, id, property_name=None):
 
     q = DBSession.query(related_class)
     q = q.with_parent(obj, property_name)
+    # IDs are required to be ints - we may thing what to do
+    # with this is a limitation later
     q = q.filter_by(id=int(id))
     result = q.first()
     return result
@@ -110,18 +112,17 @@ class Traversable(object):
         """
 
         # 1. check if it's our own view
-        registry = get_current_registry()
-        adapters = registry.adapters
-        context_iface = providedBy(self)
-        request_iface = IRequest
+        #registry = get_current_registry()
+        #adapters = registry.adapters
+        #context_iface = providedBy(self)
+        #request_iface = IRequest
 
-        view_callable = adapters.lookup(
-            (request_iface, context_iface),
-            IView, name=name, default=None)
+        #view_callable = adapters.lookup(
+            #(request_iface, context_iface),
+            #IView, name=name, default=None)
 
-        if view_callable is not None:
-            raise KeyError
-
+        #if view_callable is not None:
+            #raise KeyError
 
         ### I've got no idea what makes it a tuple but it happens
         ### This is a quick and dirty fix
@@ -133,23 +134,30 @@ class Traversable(object):
         if s is not None:
             return self.create_child_subsection(s, name)
 
+
+        # If it's an int then we suppose it's a subitem
+        # if it's not we let Pyramid to look up views
+        # and stuff
+        try:
+            int_name = int(name)
+        except ValueError:
+            raise KeyError("ID should be an int")
+
         # 3. look up subitems
         if isinstance(self.subitems_source, str):
             parent_model_resource = find_interface(self, IResource)
-            model = get_related_by_id(parent_model_resource.model, name, self.subitems_source)
+            # Some RDBMSes are not happy when we pass a string where
+            # it expects a number. And id should be a number.
+            model = get_related_by_id(parent_model_resource.model, int_name, self.subitems_source)
         else:
             if self.subitems_source is None:
                 raise KeyError("subitems_source is not set")
 
-            # Some RDBMSes are not happy when we pass a string where
-            # it expects a number. And id should be a number.
-            try:
-                int_name = int(name)
-            except ValueError:
-                raise KeyError("ID should be an int")
 
             model = DBSession.query(self.subitems_source)\
                 .filter(self.subitems_source.id==name).first()
+
+
         if model is None:
             raise KeyError
         return self.wrap_child(model=model, name=name)

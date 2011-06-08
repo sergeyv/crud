@@ -446,9 +446,12 @@ class Traversable(object):
 
 
         if fields:
-            return query_obj.order_by(fields)
-        else:
-            return query_obj
+            for f in reversed(fields):
+                query_obj = query_obj.order_by(f)
+
+        return query_obj
+
+
 
     def get_items(self, order_by=None, wrap=True, filter_condition=None):
         """

@@ -53,8 +53,8 @@ def get_related_by_id(obj, id, property_name=None):
 
     q = DBSession.query(related_class)
     q = q.with_parent(obj, property_name)
-    # IDs are required to be ints - we may thing what to do
-    # with this is a limitation later
+    # IDs are required to be ints - we may think what to do
+    # with this limitation later
     q = q.filter_by(id=int(id))
     result = q.first()
     return result

@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+
+##########################################
+#     This file forms part of CRUD
+#     Copyright: refer to COPYRIGHT.txt
+#     License: refer to LICENSE.txt
+##########################################
+
 from zope.interface import Interface
 from zope.interface import implements
 from zope.interface import providedBy

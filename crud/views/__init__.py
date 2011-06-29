@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+##########################################
+#     This file forms part of CRUD
+#     Copyright: refer to COPYRIGHT.txt
+#     License: refer to LICENSE.txt
+##########################################
+
+
 from pyramid.chameleon_zpt import render_template_to_response as render
 from pyramid import traversal
 

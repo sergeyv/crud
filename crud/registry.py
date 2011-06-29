@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+##########################################
+#     This file forms part of CRUD
+#     Copyright: refer to COPYRIGHT.txt
+#     License: refer to LICENSE.txt
+##########################################
+
 
 model_registry = dict()
 

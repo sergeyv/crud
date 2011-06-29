@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+##########################################
+#     This file forms part of CRUD
+#     Copyright: refer to COPYRIGHT.txt
+#     License: refer to LICENSE.txt
+##########################################
+
+
 from zope.interface import Interface
 from zope.configuration.xmlconfig import include, includeOverrides
 from zope.configuration.fields import GlobalObject
@@ -27,10 +34,10 @@ class IRegisterDirective(Interface):
         )
 
 def register(_context, model, resource):
-    """ 
-    registers an SA model with crud 
+    """
+    registers an SA model with crud
     <crud:register model=".models.Client" resource=".proxies.ClientResource" />
-    
+
     You can use ZCML or, alternatively, use the @resource decorator (see registry.py)
     """
     import crud

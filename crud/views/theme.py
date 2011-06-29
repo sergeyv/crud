@@ -1,8 +1,13 @@
-from pyramid.security import authenticated_userid
+##########################################
+#     This file forms part of CRUD
+#     Copyright: refer to COPYRIGHT.txt
+#     License: refer to LICENSE.txt
+##########################################
 
+
+from pyramid.security import authenticated_userid
 from pyramid.chameleon_zpt import get_template
 
-# test test
 
 class Theme(object):
 

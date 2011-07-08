@@ -24,8 +24,6 @@ def setUp():
                                       bind=engine))
     session.configure(bind=engine)
 
-    #webapp.set_dbsession(session)
-
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
 

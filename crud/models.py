@@ -585,10 +585,15 @@ class Resource(Traversable):
     def delete_item(self, request=None):
         """
         Deletes the model from the database
+
+        The callback can prevent the deletion by returning "ABORT"
+        (is there a better way?)
         """
 
         if hasattr(self, "before_item_deleted"):
-            self.before_item_deleted(request)
+            callback_result = self.before_item_deleted(request)
+            if callback_result == "ABORT":
+                return
 
         DBSession.delete(self.model)
 

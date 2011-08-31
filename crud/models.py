@@ -268,10 +268,20 @@ class Traversable(object):
 
         resource = self.wrap_child(model=obj, name=str(obj.id))
 
+        # AutoFillDropdown requires some changes to the serializer
+        # so the latter does a session flush before serializing sequences
+        # to load subobjects which were just linked to our item
+        # Example:
+        #     item.client_id =  123
+        #     ... need to flush the session here so item.client is loaded
+        #     item.client.name = "Client One"
+        # - for this to work we need to add the object to the session first
+        # (well, that's because we're using object_session)
+        DBSession.add(obj)
+
         if params is not None:
             resource.deserialize(params, request)
 
-        DBSession.add(obj)
         DBSession.flush()
 
         if hasattr(resource, "after_item_created"):

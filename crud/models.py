@@ -8,31 +8,35 @@
 
 from zope.interface import Interface
 from zope.interface import implements
-from zope.interface import providedBy
+# from zope.interface import providedBy
 
-from webob.exc import HTTPNotFound
+# from webob.exc import HTTPNotFound
 from pyramid.url import resource_url
 from pyramid.traversal import find_interface
 from pyramid.location import lineage
 
-from pyramid.interfaces import IView
-from pyramid.interfaces import IRequest
-from pyramid.threadlocal import get_current_registry
+# from pyramid.interfaces import IView
+# from pyramid.interfaces import IRequest
+# from pyramid.threadlocal import get_current_registry
 
 from sqlalchemy import orm
 
 from crud.registry import get_resource_for_model
 
 from crud.forms.fa import FormAlchemyFormFactory
-from sqlalchemy.sql.expression import desc, asc
+
+#from sqlalchemy.sql.expression import desc, asc
 
 DBSession = None
+
 
 class ITraversable(Interface):
     """ """
 
+
 class IResource(ITraversable):
     """ """
+
 
 class ICollection(ITraversable):
     """ """
@@ -65,6 +69,7 @@ def get_related_by_id(obj, id, property_name=None):
     q = q.filter_by(id=int(id))
     result = q.first()
     return result
+
 
 class Traversable(object):
     """
@@ -162,7 +167,7 @@ class Traversable(object):
 
 
             model = DBSession.query(self.subitems_source)\
-                .filter(self.subitems_source.id==name).first()
+                .filter(self.subitems_source.id == name).first()
 
 
         if model is None:
@@ -177,8 +182,8 @@ class Traversable(object):
             self.subsections = self.subsections[0]
 
         subs = []
-        for (n,s) in self.subsections.items():
-            subs.append(self.create_child_subsection(s,n))
+        for (n, s) in self.subsections.items():
+            subs.append(self.create_child_subsection(s, n))
         return subs
 
     def can_have_subitems(self):
@@ -263,7 +268,7 @@ class Traversable(object):
             # subitems_source is a class -
             # - just create an instance and return it
             # TODO: figure out how to get FK name in this case
-            obj =  self.subitems_source()
+            obj = self.subitems_source()
 
 
         resource = self.wrap_child(model=obj, name=str(obj.id))
@@ -369,8 +374,8 @@ class Traversable(object):
         else:
             section = origin.__class__(title=origin.title,
                 subitems_source=origin.subitems_source,
-                subsections = origin.subsections,
-                order_by = origin.order_by )
+                subsections=origin.subsections,
+                order_by=origin.order_by)
 
             ### TODO: This approach is not very nice because we have to copy
             ### all settings to the new object (which is getting discarded anyway)
@@ -428,9 +433,9 @@ class Traversable(object):
         for obs in order_by_str.split(';'):
             obs = obs.strip()
             if not obs:
-                continue;
+                continue
             need_desc = (obs[0] == '-')
-            need_asc  = (obs[0] == '+')
+            need_asc = (obs[0] == '+')
 
             parts = obs.lstrip('+-').split('.')
             relations = parts[:-1]
@@ -512,9 +517,9 @@ class Traversable(object):
         for item in parents:
             if item.show_in_breadcrumbs:
                 crumbs.append({
-                    'url' : url,
-                    'title' : item.title,
-                    'obj' : item,
+                    'url': url,
+                    'title': item.title,
+                    'obj': item,
                 })
             url = url.rpartition('/')[0]
         crumbs.reverse()
@@ -527,6 +532,7 @@ class Traversable(object):
         """
         resource_class = get_resource_for_model(model.__class__)
         return resource_class(name=name, parent=self, model=model)
+
 
 class Resource(Traversable):
     """
@@ -565,7 +571,8 @@ class Resource(Traversable):
     """
 
 
-    def __init__(self, name, parent, model, subitems_source=None, subsections = None, order_by = None):
+    def __init__(self, name, parent, model,\
+        subitems_source=None, subsections=None, order_by=None):
         self.__name__ = name
         self.__parent__ = parent
         self.model = model
@@ -629,9 +636,10 @@ class Resource(Traversable):
         # TODO: Add validation here
         item = self.model
 
-        for (k,v) in params.items():
-            if v: # Do not set empty fields
+        for (k, v) in params.items():
+            if v:  # Do not set empty fields
                 setattr(item, k, v)
+
 
 class Collection(Traversable):
     """
@@ -691,7 +699,8 @@ class Collection(Traversable):
     implements(ICollection)
 
 
-    def __init__(self, title=None, subitems_source=None, subsections = None, order_by = None):
+    def __init__(self, title=None, subitems_source=None, \
+        subsections=None, order_by=None):
         self.__name__ = None
         self.__parent__ = None
         if title is not None:
@@ -724,11 +733,12 @@ class Collection(Traversable):
 
 crud_root = None
 
+
 def get_root(environ=None):
     return crud_root
 
 
-def crud_init( session, root ):
+def crud_init(session, root):
     """
     Initializes crud setting the traversal root and an SA session
     """
@@ -737,5 +747,3 @@ def crud_init( session, root ):
 
     global crud_root
     crud_root = root
-
-

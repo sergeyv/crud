@@ -17,5 +17,5 @@ from models import get_root
 from models import crud_init
 
 from models import ICollection, IResource
-from models import Collection, Resource
+from models import Collection, Resource, Traversable
 

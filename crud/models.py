@@ -369,9 +369,11 @@ class Traversable(object):
         inserted in the 'traversal context'
         """
 
-        if type(origin) == type:
-            section = origin()
-        else:
+        if isinstance(origin, Collection):
+            # Finally, it can be an instance of a collection class
+            # in which case it's a "child" collection - i.e. using parent's
+            # relationship attribute as a source of subitems -
+            # "all e-mail addresses" of a particular" user etc.
             section = origin.__class__(title=origin.title,
                 subitems_source=origin.subitems_source,
                 subsections=origin.subsections,
@@ -382,6 +384,27 @@ class Traversable(object):
             ### use some sort of resource objects which refer to the original
             ### (and immutable) section?
             section.show_in_breadcrumbs = origin.show_in_breadcrumbs
+
+        elif issubclass(origin, Resource):
+            # We can have a resource to have another Resource as a direct child
+            # without intermediate collection, in case the child is a scalar
+            # attribute of the parent (User has a single Address subobject)
+            # in which case we can reach the address by traversing to .../users/123/address
+            # For this, we need to specify a Resource sublass as the value in subsections:
+            #     subsections = {
+            #        'address': crud.Resource
+            #     }
+            # Note that the class we specify there is not really used, wrap_child uses
+            # whatever Resource is registered for that model. Kinda clumsy.
+
+                item = getattr(self.model, name)
+                return self.wrap_child(item, name)
+        elif issubclass(origin, Collection):
+            # Otherwise, we suppose it's a "global" collection, i.e. not based
+            # on an attribute of the parent but containing all the child items
+            # instead. Usually used for root collections
+            section = origin()
+
 
         section.__name__ = name
         section.__parent__ = self

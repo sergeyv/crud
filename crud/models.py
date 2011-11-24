@@ -754,19 +754,11 @@ class Collection(Traversable):
 
 
 
-crud_root = None
 
-
-def get_root(environ=None):
-    return crud_root
-
-
-def crud_init(session, root):
+def crud_init(session):
     """
     Initializes crud setting the traversal root and an SA session
     """
     global DBSession
     DBSession = session
 
-    global crud_root
-    crud_root = root

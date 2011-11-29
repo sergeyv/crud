@@ -27,7 +27,7 @@ def setUp():
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
 
-    crud.crud_init(session, None)
+    crud.crud_init(session)
 
 
 def tearDown():

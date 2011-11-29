@@ -681,11 +681,21 @@ class Collection(Traversable):
                 'about' : AboutCollection,
             }
 
-    This code will create a "root collection" which can be registered with::
+    This code will create a "root collection" which can be passed to Pyramid's configurator::
+
+
+        def root_factory(request):
+            return RootCollection(request)
+
+        config = Configurator(
+            root_factory=root_factory
+            ...
+            )
+
+    We also need to tell crud which SQLAlchemy session to use::
 
         import crud
-
-        crud.crud_init(DBSession, RootCollection)
+        crud.crud_init(DBSession)
 
     After this, the `/` url will be mapped to the default view attached the RootCollection and `/about` will invoke the view attached to the AboutCollection
 
@@ -757,7 +767,7 @@ class Collection(Traversable):
 
 def crud_init(session):
     """
-    Initializes crud setting the traversal root and an SA session
+    Initializes crud by setting the SA session
     """
     global DBSession
     DBSession = session

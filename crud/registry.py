@@ -28,6 +28,15 @@ class ResourceRegistry(object):
 
 
     def add(self, model_class):
+        """
+        A decorator which syntax-sugares registering::
+
+            registry = ResourceRegistry("myapp")
+            @registry.add(models.Client)
+            class ClientResource(crud.Resource):
+                ...
+
+        """
 
         def decorator(resource_class):
             self.register(model_class, resource_class)
@@ -72,12 +81,9 @@ def get_resource_registry_by_name(name):
 
 class resource(object):
     """
-    A decorator which syntax-sugares registering::
+    A decorator which syntax-sugares registering
 
-        @crud.resource(models.Client)
-        class ClientResource(crud.Resource):
-            ...
-
+    it uses the default registry to support the old behaviour
     """
     def __init__(self, model):
         self.model = model

@@ -27,6 +27,14 @@ class ResourceRegistry(object):
         resource_registries[app_name] = self
 
 
+    def add(self, model_class):
+
+        def decorator(resource_class):
+            self.register(model_class, resource_class)
+            return resource_class
+
+        return decorator
+
     def register(self, model_class, resource_class=None):
         # every model can have just one resource
         # however, a resource may be used for several models

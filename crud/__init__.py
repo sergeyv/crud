@@ -12,7 +12,8 @@ import sys
 import sqlalchemy.exc as exceptions
 sys.modules['sqlalchemy.exceptions'] = exceptions
 
-from registry import register, resource, get_registered_types
+from registry import resource, ResourceRegistry
+
 from models import crud_init
 
 from models import ICollection, IResource

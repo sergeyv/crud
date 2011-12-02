@@ -21,7 +21,7 @@ from pyramid.location import lineage
 
 from sqlalchemy import orm
 
-from crud.registry import get_resource_for_model
+
 
 from crud.forms.fa import FormAlchemyFormFactory
 
@@ -91,6 +91,23 @@ class Traversable(object):
     """
 
     show_in_breadcrumbs = True
+
+
+    resource_registry = None
+
+    def find_resource_registry(self):
+        from crud.registry import get_resource_registry_by_name
+
+        if self.resource_registry is not None:
+            if isinstance(self.resource_registry, basestring):
+                return get_resource_registry_by_name(self.resource_registry)
+            return self.resource_registry
+
+        if (self.__parent__ is not None) and hasattr(self.__parent__, 'find_resource_registry'):
+            return self.__parent__.find_resource_registry()
+
+        return get_resource_registry_by_name('default')
+
 
     def item_url(self, request, view_method=None):
         if view_method:
@@ -553,7 +570,8 @@ class Traversable(object):
         Wrap a model in a correct subsclass of Resource
         and return it as a subitem
         """
-        resource_class = get_resource_for_model(model.__class__)
+        registry = self.find_resource_registry()
+        resource_class = registry.get_resource_for_model(model.__class__)
         return resource_class(name=name, parent=self, model=model)
 
 

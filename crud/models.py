@@ -397,12 +397,13 @@ class Traversable(object):
             # Note that the class we specify there is not really used, wrap_child uses
             # whatever Resource is registered for that model. Kinda clumsy.
 
-                item = getattr(self.model, name)
-                return self.wrap_child(item, name)
-        elif issubclass(origin, Collection):
+            item = getattr(self.model, name)
+            return self.wrap_child(item, name)
+        else:  #  issubclass(origin, Collection): - this breaks subobjects
             # Otherwise, we suppose it's a "global" collection, i.e. not based
             # on an attribute of the parent but containing all the child items
             # instead. Usually used for root collections
+            # Also it's used by non-SA-based subobjects, so we just instantiate it
             section = origin()
 
 

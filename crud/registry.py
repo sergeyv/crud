@@ -50,6 +50,8 @@ class ResourceRegistry(object):
         if resource_class is None:
             resource_class = Resource
 
+        if model_class in self.resources:
+            raise ValueError("Model %s is already registered with resource %s - can't re-register with %s" % (model_class, self.resources[model_class], resource_class))
         self.resources[model_class] = resource_class
 
     def get_registered_types(self):

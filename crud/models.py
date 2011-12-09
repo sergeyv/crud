@@ -441,7 +441,7 @@ class Traversable(object):
             q = q.filter(filter_condition)
 
         # Ordering support: we can override order_by on a per-call basis
-        if order_by is None:
+        if not order_by:
             order_by = self.order_by
 
         if order_by is not None:

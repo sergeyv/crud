@@ -21,7 +21,7 @@ from pyramid.location import lineage
 
 from sqlalchemy import orm
 
-from crud.registry import get_resource_for_model
+
 
 from crud.forms.fa import FormAlchemyFormFactory
 
@@ -91,6 +91,23 @@ class Traversable(object):
     """
 
     show_in_breadcrumbs = True
+
+
+    resource_registry = None
+
+    def find_resource_registry(self):
+        from crud.registry import get_resource_registry_by_name
+
+        if self.resource_registry is not None:
+            if isinstance(self.resource_registry, basestring):
+                return get_resource_registry_by_name(self.resource_registry)
+            return self.resource_registry
+
+        if (self.__parent__ is not None) and hasattr(self.__parent__, 'find_resource_registry'):
+            return self.__parent__.find_resource_registry()
+
+        return get_resource_registry_by_name('default')
+
 
     def item_url(self, request, view_method=None):
         if view_method:
@@ -558,7 +575,8 @@ class Traversable(object):
         Wrap a model in a correct subsclass of Resource
         and return it as a subitem
         """
-        resource_class = get_resource_for_model(model.__class__)
+        registry = self.find_resource_registry()
+        resource_class = registry.get_resource_for_model(model.__class__)
         return resource_class(name=name, parent=self, model=model)
 
 
@@ -686,11 +704,21 @@ class Collection(Traversable):
                 'about' : AboutCollection,
             }
 
-    This code will create a "root collection" which can be registered with::
+    This code will create a "root collection" which can be passed to Pyramid's configurator::
+
+
+        def root_factory(request):
+            return RootCollection(request)
+
+        config = Configurator(
+            root_factory=root_factory
+            ...
+            )
+
+    We also need to tell crud which SQLAlchemy session to use::
 
         import crud
-
-        crud.crud_init(DBSession, RootCollection)
+        crud.crud_init(DBSession)
 
     After this, the `/` url will be mapped to the default view attached the RootCollection and `/about` will invoke the view attached to the AboutCollection
 
@@ -759,19 +787,11 @@ class Collection(Traversable):
 
 
 
-crud_root = None
 
-
-def get_root(environ=None):
-    return crud_root
-
-
-def crud_init(session, root):
+def crud_init(session):
     """
-    Initializes crud setting the traversal root and an SA session
+    Initializes crud by setting the SA session
     """
     global DBSession
     DBSession = session
 
-    global crud_root
-    crud_root = root

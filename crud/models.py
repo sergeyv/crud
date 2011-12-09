@@ -215,6 +215,10 @@ class Traversable(object):
         arg = relation.property.argument
         ### TODO: This is not a proper test, it's just a coincidence
         ### that it's callable in one case and not callable in another
+
+        ### BUG BUG BUG: This lousy test only works if the relation is defined with
+        ### strings: attr = relationship('Someclass') and it appear to fail if
+        ### the actual class is used: attr = relationship(Someclass)
         if callable(arg):
             # the relationship is defined on our class
             related_class = arg()

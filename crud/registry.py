@@ -6,8 +6,6 @@
 #     License: refer to LICENSE.txt
 ##########################################
 
-from crud.models import Resource
-
 
 resource_registries = {}
 
@@ -37,7 +35,7 @@ class ResourceRegistry(object):
     app_name = None
     default_resource = None
 
-    def __init__(self, app_name, default_resource=Resource):
+    def __init__(self, app_name, default_resource=None):
         """
         Creates a ResourceRegistry.
 

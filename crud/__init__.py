@@ -12,7 +12,7 @@ import sys
 import sqlalchemy.exc as exceptions
 sys.modules['sqlalchemy.exceptions'] = exceptions
 
-from registry import resource, ResourceRegistry
+from registry import resource, ResourceRegistry, register
 
 from models import crud_init
 

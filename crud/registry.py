@@ -136,3 +136,9 @@ class resource(object):
         return cls
 
 
+def register(model_class, resource_class):
+    """
+    Register a model in the default registry
+    """
+    default_resource_registry.register(model_class, resource_class)
+

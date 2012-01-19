@@ -420,7 +420,7 @@ class Traversable(object):
 
             item = getattr(self.model, name)
             return self.wrap_child(item, name)
-        else:  #  issubclass(origin, Collection): - this breaks subobjects
+        else:  # issubclass(origin, Collection): - this breaks subobjects
             # Otherwise, we suppose it's a "global" collection, i.e. not based
             # on an attribute of the parent but containing all the child items
             # instead. Usually used for root collections

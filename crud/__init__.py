@@ -16,6 +16,6 @@ from registry import resource, ResourceRegistry, register
 
 from models import crud_init
 
-from models import ICollection, IResource
+from models import ITraversable, ICollection, IResource
 from models import Collection, Resource, Traversable
 

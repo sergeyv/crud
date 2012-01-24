@@ -254,13 +254,13 @@ class Traversable(object):
         else:
             return self.subitems_source
 
-    def create_subitem(self, params=None, request=None, wrap=False):
+    def create_subitem(self, setter_fn=None, request=None, wrap=False):
         """
         Creates a new subitem and sets its FK to its
         parent model's PK (if any)
 
-        Also sets the new object properties to the initial values passed
-        in params (which is a dict)
+        setter_fn is a callback which can set the model fields' values before
+        it's flushed to the database
         """
         if isinstance(self.subitems_source, str):
             parent_wrapper = self.parent_model()
@@ -305,11 +305,15 @@ class Traversable(object):
         # (well, that's because we're using object_session)
         DBSession.add(obj)
 
-        if params is not None:
-            resource.deserialize(params, request)
+        # TODOXXX: Resource has no deserialize method
+        if setter_fn is not None:
+            setter_fn(resource)
 
+        # TODOXXX: flushing the session before deserializing the item
+        # FAILS if any of the fields are declared NOT NULL or UNIQUE
         DBSession.flush()
 
+        ### TODOXXX: The item is actually empty here, need to call it later
         if hasattr(resource, "after_item_created"):
             resource.after_item_created(request)
 
@@ -320,7 +324,7 @@ class Traversable(object):
 
     def create_transient_subitem(self):
         """
-        Just like create_subitem only makes sure the new item is
+        Just like create__subitem only makes sure the new item is
         not added to session and there are no other persistent side-effects,
         so the item can be safely discarded after we no longer need it
         """

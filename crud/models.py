@@ -254,7 +254,7 @@ class Traversable(object):
         else:
             return self.subitems_source
 
-    def create_subitem(self, setter_fn=None, request=None, wrap=False):
+    def create_subitem(self, setter_fn=None, wrap=False):
         """
         Creates a new subitem and sets its FK to its
         parent model's PK (if any)
@@ -312,10 +312,6 @@ class Traversable(object):
         # TODOXXX: flushing the session before deserializing the item
         # FAILS if any of the fields are declared NOT NULL or UNIQUE
         DBSession.flush()
-
-        ### TODOXXX: The item is actually empty here, need to call it later
-        if hasattr(resource, "after_item_created"):
-            resource.after_item_created(request)
 
         if wrap:
             return resource

@@ -439,7 +439,7 @@ class Traversable(object):
         """
 
         related_class = self.get_subitems_class()
-        if isinstance(self.subitems_source, str):
+        if isinstance(self.subitems_source, basestring):
             parent_model_resource = find_interface(self, IResource)
             parent_class = parent_model_resource.model
             q = DBSession.query(related_class)

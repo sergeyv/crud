@@ -305,12 +305,12 @@ class Traversable(object):
         # (well, that's because we're using object_session)
         DBSession.add(obj)
 
-        # TODOXXX: Resource has no deserialize method
         if setter_fn is not None:
             setter_fn(resource)
 
-        # TODOXXX: flushing the session before deserializing the item
+        # flushing the session before deserializing the item
         # FAILS if any of the fields are declared NOT NULL or UNIQUE
+        # - setter_fn is supposed to populate these before flushing
         DBSession.flush()
 
         if wrap:

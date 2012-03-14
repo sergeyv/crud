@@ -11,6 +11,7 @@
 
     <meta:directives namespace="http://namespaces.mooball.com/crud">
 
+<!--
     <meta:directive
         name="register"
         schema=".zcml.IRegisterDirective"
@@ -22,7 +23,7 @@
         schema=".zcml.ICollectionDirective"
         handler=".zcml.section"
         />
-
+-->
 
      </meta:directives>
 

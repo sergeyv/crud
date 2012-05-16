@@ -419,6 +419,11 @@ class Traversable(object):
             # whatever Resource is registered for that model. Kinda clumsy.
 
             item = getattr(self.model, name)
+
+            # If the sub-objects is None, calling wrap_child fails in spectacular ways
+            if item is None:
+                raise KeyError, "Scalar attribute not found on the model"
+
             return self.wrap_child(item, name)
         else:  # issubclass(origin, Collection): - this breaks subobjects
             # Otherwise, we suppose it's a "global" collection, i.e. not based

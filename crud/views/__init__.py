@@ -7,7 +7,7 @@
 ##########################################
 
 
-from pyramid.chameleon_zpt import render_template_to_response as render
+from pyramid.renderers import render_to_response
 from pyramid import traversal
 
 from webob.exc import HTTPFound
@@ -23,7 +23,7 @@ def index(context,request):
     # context is a Collection object here
     theme = Theme(context, request)
 
-    return render('templates/index.pt',
+    return render_to_response('templates/index.pt',
                   context=context,
                   request = request,
                   theme = theme,
@@ -33,7 +33,7 @@ def view(context, request):
     #context is Resource here
     theme = Theme(context, request)
 
-    return render('templates/view.pt',
+    return render_to_response('templates/view.pt',
                    context = context,
                    form = context.form_factory.readonly_form(context),
                    request = request,
@@ -54,7 +54,7 @@ def edit(context, request):
 
     #form['title'].widget = formish.Input(strip=True)
     form['title'].default = "Hello!"
-    return render('templates/edit.pt',
+    return render_to_response('templates/edit.pt',
                   context = context,
                   theme=theme,
                   form = context.form_factory.edit_form(context),
@@ -69,7 +69,7 @@ def add(context, request):
 
     form = resource.form_factory.add_form(context,dbsession)
 
-    return render('templates/add.pt',
+    return render_to_response('templates/add.pt',
                   instance = resource.model,
                   theme = theme,
                   form = form,
@@ -118,7 +118,7 @@ def delete(context, request):
         context.delete_item(request)
 
         return HTTPFound(location=success_url)
-    return render('templates/delete.pt',
+    return render_to_response('templates/delete.pt',
                   instance = context.model,
                   context = context,
                   request = request,

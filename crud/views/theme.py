@@ -6,7 +6,7 @@
 
 
 from pyramid.security import authenticated_userid
-from pyramid.chameleon_zpt import get_template
+from pyramid.renderers import get_renderer
 
 
 class Theme(object):
@@ -19,7 +19,7 @@ class Theme(object):
     layout_fn = 'templates/layout.pt'
     @property
     def layout(self):
-        macro_template = get_template(self.layout_fn)
+        macro_template = get_renderer(self.layout_fn).implementation()
         return macro_template
 
     @property

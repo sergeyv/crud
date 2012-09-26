@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 ##########################################
 #     This file forms part of CRUD
 #     Copyright: refer to COPYRIGHT.txt
@@ -8,37 +7,40 @@
 
 
 from pyramid.renderers import render_to_response
-from pyramid import traversal
 
 from webob.exc import HTTPFound
-from formalchemy import FieldSet
 from crud.models import DBSession
 
 
-from crud import IResource, ICollection, Resource
-
 from crud.views.theme import Theme
 
-def index(context,request):
+
+def index(context, request):
     # context is a Collection object here
     theme = Theme(context, request)
 
     return render_to_response('templates/index.pt',
-                  context=context,
-                  request = request,
-                  theme = theme,
+                  value=dict(
+                    context=context,
+                    request=request,
+                    theme=theme,
+                    )
                  )
+
 
 def view(context, request):
     #context is Resource here
     theme = Theme(context, request)
 
     return render_to_response('templates/view.pt',
-                   context = context,
-                   form = context.form_factory.readonly_form(context),
-                   request = request,
-                   theme = theme,
+                   value=dict(
+                     context=context,
+                     form=context.form_factory.readonly_form(context),
+                     request=request,
+                     theme=theme,
+                     )
                   )
+
 
 def edit(context, request):
     # context is Resource here
@@ -55,11 +57,14 @@ def edit(context, request):
     #form['title'].widget = formish.Input(strip=True)
     form['title'].default = "Hello!"
     return render_to_response('templates/edit.pt',
-                  context = context,
-                  theme=theme,
-                  form = context.form_factory.edit_form(context),
-                  request = request,
+                  value=dict(
+                      context=context,
+                      theme=theme,
+                      form=context.form_factory.edit_form(context),
+                      request=request,
+                      )
                  )
+
 
 def add(context, request):
     # context is Collection here
@@ -67,18 +72,21 @@ def add(context, request):
     dbsession = DBSession()
     resource = context.create_subitem(wrap=True)
 
-    form = resource.form_factory.add_form(context,dbsession)
+    form = resource.form_factory.add_form(context, dbsession)
 
     return render_to_response('templates/add.pt',
-                  instance = resource.model,
-                  theme = theme,
-                  form = form,
-                  context = context,
-                  request = request,
+                  value=dict(
+                      instance=resource.model,
+                      theme=theme,
+                      form=form,
+                      context=context,
+                      request=request,
+                      )
                  )
 
+
 def save(context, request):
-    success_url = request.path_url.rpartition('/')[0]+ '/'
+    success_url = request.path_url.rpartition('/')[0] + '/'
     failure_url = request.path_url.rpartition('/')[0] + '/edit'
 
     instance = context.model
@@ -87,13 +95,17 @@ def save(context, request):
         return HTTPFound(location=success_url)
 
     dbsession = DBSession()
-    success = context.form_factory.save(model = instance, data=request.params, session=dbsession)
+    success = context.form_factory.save(
+        model=instance,
+        data=request.params,
+        session=dbsession)
     if success:
         return HTTPFound(location=success_url)
     return HTTPFound(location=failure_url)
 
+
 def save_new(context, request):
-    success_url = request.path_url.rpartition('/')[0]+ '/'
+    success_url = request.path_url.rpartition('/')[0] + '/'
     failure_url = request.path_url.rpartition('/')[0] + '/edit'
 
     if 'form.button.cancel' in request.params:
@@ -105,6 +117,7 @@ def save_new(context, request):
         dbsession.add(resource.model)
         return HTTPFound(location=success_url)
     return HTTPFound(location=failure_url)
+
 
 def delete(context, request):
     success_url = context.parent_url(request)
@@ -119,9 +132,11 @@ def delete(context, request):
 
         return HTTPFound(location=success_url)
     return render_to_response('templates/delete.pt',
-                  instance = context.model,
-                  context = context,
-                  request = request,
-                  theme=theme,
+                  value=dict(
+                      instance=context.model,
+                      context=context,
+                      request=request,
+                      theme=theme,
+                      )
                  )
 

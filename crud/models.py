@@ -21,9 +21,7 @@ from pyramid.location import lineage
 
 from sqlalchemy import orm
 
-
-
-from crud.forms.fa import FormAlchemyFormFactory
+# from crud.forms.fa import FormAlchemyFormFactory
 
 #from sqlalchemy.sql.expression import desc, asc
 
@@ -615,7 +613,8 @@ class Resource(Traversable):
     implements(IResource)
 
 
-    form_factory = FormAlchemyFormFactory()
+    # form_factory = FormAlchemyFormFactory()
+
     """
     Set FA form factory as the default (as this is the only one
     functional factory at the moment anyway)

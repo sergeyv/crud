@@ -21,6 +21,8 @@ from pyramid.location import lineage
 
 from sqlalchemy import orm
 
+from pprint import pprint
+
 # from crud.forms.fa import FormAlchemyFormFactory
 
 #from sqlalchemy.sql.expression import desc, asc
@@ -440,10 +442,10 @@ class Traversable(object):
         """
         Returns the query which can be further modified
         """
-
+        parent_model_resource = find_interface(self, IResource)
+        
         related_class = self.get_subitems_class()
         if isinstance(self.subitems_source, basestring):
-            parent_model_resource = find_interface(self, IResource)
             parent_class = parent_model_resource.model
             q = DBSession.query(related_class)
             q = q.with_parent(parent_class, self.subitems_source)
@@ -451,6 +453,8 @@ class Traversable(object):
             q = DBSession.query(related_class)
 
 
+        
+                
         # A descendant class can define a class variable 'filter_condition'
         # which defines an additional filter condition
         if self.filter_condition is not None:
@@ -466,6 +470,11 @@ class Traversable(object):
 
         if order_by is not None:
             q = self._build_order_by_clause(q, related_class, order_by)
+            
+        if hasattr(parent_model_resource, '__soft_delete__'):
+            if parent_model_resource.__soft_delete__ == True:
+                q = q.filter(parent_model_resource.model.deleted == False)
+                
         return q
 
 
@@ -649,7 +658,7 @@ class Resource(Traversable):
         return str(self.model)
 
 
-    def delete_item(self, request=None):
+    def delete_item(self, request=None, soft=False):
         """
         Deletes the model from the database
 
@@ -662,7 +671,12 @@ class Resource(Traversable):
             if callback_result == "ABORT":
                 return
 
-        DBSession.delete(self.model)
+        if soft:
+            self.model.deleted = True
+        else:
+            DBSession.delete(self.model)
+            
+        return True    
 
 
     def update(self, params, request):

@@ -671,12 +671,14 @@ class Resource(Traversable):
             if callback_result == "ABORT":
                 return
 
+        item_id = self.model.id
+        
         if soft:
             self.model.deleted = True
         else:
             DBSession.delete(self.model)
             
-        return True    
+        return item_id
 
 
     def update(self, params, request):

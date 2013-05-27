@@ -676,7 +676,8 @@ class Resource(Traversable):
         if soft:
             self.model.deleted = True
         else:
-            DBSession.delete(self.model)
+            DBSession.query(self.model.__class__).filter(self.model.__class__.id == self.model.id).delete()
+            #DBSession.delete(self.model)
             
         return item_id
 

@@ -347,21 +347,12 @@ class Traversable(object):
             if len(ids):
                 cls = self.get_subitems_class()
 
-                ## TODO: Should we not try to over-optimize and just
-                ## call resource.delete_item() instead of attemptimg to
-                ## delete everything with a single query? Would this be
-                ## better in terms of less surprises when overriding delete_item
-                ## method, for example?
                 qry = self.get_items_query()
                 qry = qry.filter(cls.id.in_(ids))
 
-                # Call the before_item_deleted hook for each item
                 for item in qry.all():
                     resource = self.wrap_child(item, name=item.id)
                     resource.delete_item(request)
-
-                    #if hasattr(resource, "before_item_deleted"):
-                    #    resource.before_item_deleted(request)
 
                 #qry.delete(synchronize_session=False) # we may have some stale objects in the session with synchronize_session=False, but do we really care? If we do, may change this to "fetch"
         else:
@@ -658,7 +649,7 @@ class Resource(Traversable):
         return str(self.model)
 
 
-    def delete_item(self, request=None, soft=False):
+    def delete_item(self, request):
         """
         Deletes the model from the database
 
@@ -672,12 +663,9 @@ class Resource(Traversable):
                 return
 
         item_id = self.model.id
-        
-        if soft:
-            self.model.deleted = True
-        else:
-            DBSession.query(self.model.__class__).filter(self.model.__class__.id == self.model.id).delete()
-            #DBSession.delete(self.model)
+
+        DBSession.query(self.model.__class__).filter(self.model.__class__.id == self.model.id).delete()
+        #DBSession.delete(self.model)
             
         return item_id
 

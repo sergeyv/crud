@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # -*- coding: utf-8 -*-
 
 ##########################################
@@ -434,7 +437,7 @@ class Traversable(object):
         Returns the query which can be further modified
         """
         parent_model_resource = find_interface(self, IResource)
-        
+
         related_class = self.get_subitems_class()
         if isinstance(self.subitems_source, basestring):
             parent_class = parent_model_resource.model
@@ -444,8 +447,8 @@ class Traversable(object):
             q = DBSession.query(related_class)
 
 
-        
-                
+
+
         # A descendant class can define a class variable 'filter_condition'
         # which defines an additional filter condition
         if self.filter_condition is not None:
@@ -461,11 +464,11 @@ class Traversable(object):
 
         if order_by is not None:
             q = self._build_order_by_clause(q, related_class, order_by)
-            
+
         if hasattr(parent_model_resource, '__soft_delete__'):
             if parent_model_resource.__soft_delete__ == True:
                 q = q.filter(parent_model_resource.model.deleted == False)
-                
+
         return q
 
 
@@ -666,7 +669,7 @@ class Resource(Traversable):
 
         DBSession.query(self.model.__class__).filter(self.model.__class__.id == self.model.id).delete()
         #DBSession.delete(self.model)
-            
+
         return item_id
 
 

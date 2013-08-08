@@ -465,9 +465,9 @@ class Traversable(object):
         if order_by is not None:
             q = self._build_order_by_clause(q, related_class, order_by)
 
-        if hasattr(parent_model_resource, '__soft_delete__'):
-            if parent_model_resource.__soft_delete__ == True:
-                q = q.filter(parent_model_resource.model.deleted == False)
+        #if hasattr(parent_model_resource, '__soft_delete__'):
+        #    if parent_model_resource.__soft_delete__ == True:
+        #        q = q.filter(parent_model_resource.model.deleted == False)
 
         return q
 
